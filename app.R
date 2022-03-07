@@ -155,10 +155,13 @@ body <- dashboardBody(uiOutput("body"))
 ui <- fluidPage(useShinyFeedback(),
                 customTheme,
                 dashboardPage(header,sidebar, body),
-                tags$head(includeScript("returnClick.js")))
+                tags$head(includeScript("returnClick.js")),
+                style='padding-left:0px;padding-right:0px')
 login_details <- data.frame(user = c("JEFFERSON","SAM", "PAM", "RON"),
                             pswd = c("123A","123B","123C","123D"))
-login <- box(icon=icon("lock"),title = " SIGN IN TO INFINICALS",status="warning"
+login <- dashboardBody(
+  fluidRow(
+    column(12,offset=1,box(icon=icon("lock"),title = " SIGN IN TO INFINICALS",status="warning"
              ,background="olive",solidHeader= TRUE, 
              textInput("userName",label = div(icon("user-plus",
                                           style = "color:yellow;"),'Username')),
@@ -174,7 +177,7 @@ login <- box(icon=icon("lock"),title = " SIGN IN TO INFINICALS",status="warning"
              br(),
              tags$a(href='http://jeff.com/',
                     'New User',style = "color:#0000b6;")
-                    )  
+                    ))))
 server <- function(input, output, session) {
   datae <-reactive({
     req(input$date)
@@ -216,10 +219,9 @@ server <- function(input, output, session) {
     switch(style(),
            "Line" = ggplot(datae3(),aes(x=dates,y=weight,group=crop))+
              geom_line(aes(col=crop),linetype='solid'),
-           "Bar" = ggplot(datae3(),aes(x=dates,y=weight,fill=crop))+
-             geom_bar(stat='identity'))
+           "Comparative Bar" = ggplot(datae3(),aes(x=dates,y=weight,fill=crop))+geom_bar(stat='identity',position='dodge'),
+           "Cumulative Bar"= ggplot(datae3(),aes(x=dates,y=weight,fill=crop))+geom_bar(stat='identity'))
   })
-
   login.page = 
   paste(
   isolate(session$clientData$url_protocol),
@@ -436,11 +438,11 @@ kenya_status1<- readxl::read_xlsx('~/Programming/R/DATA/kenya_status1.xlsx')
                      output$tableu<- renderDataTable(
                        exports1%>% select(dates,crop,weight)%>% filter(exports1$crop%in% input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2]))
                      )),
-                    tabPanel(title='Graph',
-                             radioButtons(inputId='graph_type',label='Type of Graph',choices=c('Line','Bar'),selected='Line'),
+                    tabPanel(title='Graphs',titlePanel('Type of Graph'),
+                             radioButtons(inputId='graph_type',label='Choose the Graph',choices=c('Line','Comparative Bar','Cumulative Bar'),selected=NULL ),
                              output$graph3<-renderPlotly({
                        plottype() +
-                         labs(fill='Crops',x='Dates', y='Weight Harvested',title=paste('Comparison of',input$select_crop[1],input$select_crop[2],'and',input$select_crop[3],'exported',sep=' '),subtitle='Comparison of Crops Weights exported',caption='Jefferson Ndeke,Econstats')+
+                         labs(fill='Crops',x='Dates', y='Weight Harvested',title=paste('A',input$graph_type,'Graph for',input$select_crop[1],input$select_crop[2],'and',input$select_crop[3],'exported',sep=' '),subtitle='Comparison of Crops Weights exported',caption='Jefferson Ndeke,Econstats')+
                          theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),plot.subtitle =element_text(hjust = 0.5),plot.caption = element_text(hjust = 0,face = 'italic'),axis.text = element_text(angle=45,hjust=1))
                      }))))
                      )
