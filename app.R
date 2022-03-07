@@ -209,7 +209,16 @@ server <- function(input, output, session) {
            validate("Invalid file: Please upload a .csv , .tsv , .xls or .xlsx file!")
     )
   })
-  
+  style <- reactive({
+    input$graph_type
+  })
+  plottype <- reactive({
+    switch(style(),
+           "Line" = ggplot(datae3(),aes(x=dates,y=weight,group=crop))+
+             geom_line(aes(col=crop),linetype='solid'),
+           "Bar" = ggplot(datae3(),aes(x=dates,y=weight,fill=crop))+
+             geom_bar(stat='identity'))
+  })
 
   login.page = 
   paste(
@@ -428,9 +437,9 @@ kenya_status1<- readxl::read_xlsx('~/Programming/R/DATA/kenya_status1.xlsx')
                        exports1%>% select(dates,crop,weight)%>% filter(exports1$crop%in% input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2]))
                      )),
                     tabPanel(title='Graph',
+                             radioButtons(inputId='graph_type',label='Type of Graph',choices=c('Line','Bar'),selected='Line'),
                              output$graph3<-renderPlotly({
-                       ggplot(datae3(),aes(x=dates,y=weight,group=crop))+
-                         geom_line(aes(col= crop),linetype='solid')+
+                       plottype() +
                          labs(fill='Crops',x='Dates', y='Weight Harvested',title=paste('Comparison of',input$select_crop[1],input$select_crop[2],'and',input$select_crop[3],'exported',sep=' '),subtitle='Comparison of Crops Weights exported',caption='Jefferson Ndeke,Econstats')+
                          theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),plot.subtitle =element_text(hjust = 0.5),plot.caption = element_text(hjust = 0,face = 'italic'),axis.text = element_text(angle=45,hjust=1))
                      }))))
