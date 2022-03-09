@@ -3,6 +3,7 @@ library(readr)
 library(readxl)
 library(plotly)
 library(shiny)
+library(shinycssloaders)
 library(shinydashboard)
 library(dashboardthemes)
 library(bslib)
@@ -34,7 +35,7 @@ customTheme <- shinyDashboardThemeDIY(
   
   ### header
   ,logoBackColor = "rgb(51,153,115)"
- 
+  
   ,headerButtonBackColor = "rgb(0,255,255)"
   ,headerButtonIconColor = "rgb(0,0,204)"
   ,headerButtonBackColorHover = "rgb(255,255,0)"
@@ -136,38 +137,39 @@ customTheme <- shinyDashboardThemeDIY(
   ,tableBorderColor = "rgb(179,0,218)"
   ,tableBorderTopSize = 1
   ,tableBorderRowSize = 1
-  )
-header <- dashboardHeader(
-  tags$li(class = "dropdown",
-                              tags$style(".main-header {max-height: 60px}"),
-                              tags$style(".main-header .logo {height: 70px}")),
-                              title = tags$a(href='http://company.fr/', 
-                                               'INFINICALS',
+)
+header <- dashboardHeader(title = tags$a(tags$img(src='logo.png'),
+                                         href='http://company.fr/','INFINICALS',
                                          style = "color:yellow; 
                                          font-family:Candara;
                                          font-size:24px;
-                                         font-style: bold;",
-                                         tags$img(src='logo.png')))
-sidebar <- dashboardSidebar(uiOutput("sidebarpanel"),
-                            tags$style(".left-side, .main-sidebar
-                                       {padding-top: 80px}"))
-body <- dashboardBody(uiOutput("body"))
-ui <- fluidPage(useShinyFeedback(),
-                customTheme,
-                dashboardPage(header,sidebar, body),
-                tags$head(includeScript("returnClick.js")),
-                style='padding-left:0px;padding-right:0px')
+                                         font-style: bold;"))
+sidebar <- dashboardSidebar(uiOutput("sidebarpanel"))
+body <- dashboardBody(withSpinner(uiOutput("body"),
+                                  type = 1,
+                                  color='#fe9000'),
+                      customTheme,
+                      tags$head(includeScript('returnClick.js'))
+                      )
+ui <-dashboardPage(header,sidebar,body)
 login_details <- data.frame(user = c("JEFFERSON","SAM", "PAM", "RON"),
                             pswd = c("123A","123B","123C","123D"))
-login <- dashboardBody(
-  fluidRow(
-    column(12,offset=1,box(icon=icon("lock"),title = " SIGN IN TO INFINICALS",status="warning"
-             ,background="olive",solidHeader= TRUE, 
-             textInput("userName",label = div(icon("user-plus",
-                                          style = "color:yellow;"),'Username')),
-             passwordInput('passwd',label = div(icon("key", 
-                                                     style = "color:yellow;"
-                                                     ),"Password")),
+login <-fluidRow(
+  column(12,
+         br(),
+         br(),
+         br(),
+         box(icon=icon("lock"),title = " SIGN IN TO INFINICALS",
+             status="warning",
+             background="olive",
+             solidHeader= TRUE,
+             textInput("userName",
+                       label = div(icon("user-plus",
+                                        style = "color:yellow;"),'Username')),
+             passwordInput('passwd',
+                           label = div(icon("key", 
+                                            style = "color:yellow;"),
+                                       "Password")),
              br(),
              actionButton("Login", "Log in"),
              br(),
@@ -177,17 +179,19 @@ login <- dashboardBody(
              br(),
              tags$a(href='http://jeff.com/',
                     'New User',style = "color:#0000b6;")
-                    ))))
+         )))
 server <- function(input, output, session) {
-  datae <-reactive({
-    req(input$date)
-    validate(need(!is.na(input$date[1]) & !is.na(input$date[2]), "Error: Please provide both a start and an end date."))
-    validate(need(input$date[1] < input$date[2], "Error: Start date should be earlier than end date."))
-    kenya_status1 %>%
-      filter(
-        indicator== input$indicator,
-        date > as.POSIXct(input$date[1]) & date < as.POSIXct(input$date[2]
-        ))})
+  exports1<- readxl::read_xlsx(path='~/Programming/R/DATA/exports1.xlsx')
+  exports<- readxl::read_xlsx(path='~/Programming/R/DATA/exports.xlsx')
+  kenya_status1<- readxl::read_xlsx('~/Programming/R/DATA/kenya_status1.xlsx')
+  output$text1<-renderText({
+    req(input$date3)
+    validate(need(!is.na(input$date3[1]) & !is.na(input$date3[2]), "Error: Please provide both a start and an end date."))
+    validate(need(input$date3[1] < input$date3[2], "Error: Start date should be earlier than end date."))
+  })
+  output$tb_chosen <-renderDataTable(exports1%>%filter(
+    exports1$type%in%input$choose_category &
+      exports1$crop%in%input$choose_item & dates > as.POSIXct(input$date3[1]) & dates < as.POSIXct(input$date3[2])))
   datae2<-reactive({
     req(input$choose_item)
     req(input$date4)
@@ -196,21 +200,42 @@ server <- function(input, output, session) {
     exports1%>%filter(
       exports1$type%in%input$choose_category &
         exports1$crop%in%input$choose_item & dates > as.POSIXct(input$date4[1]) & dates < as.POSIXct(input$date4[2]))
-    })
-  datae3<-reactive({
-    validate(need(!is.na(input$select_crop), "Select a maximum of three Crops"))
-    exports1%>% select(dates,crop,weight)%>% filter(exports1$crop%in% input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2]))
   })
-  upload<- reactive({
-    req(input$file1)
-   ext <- tools::file_ext(input$file1$name)
-    switch(ext,
-           csv = vroom::vroom(input$file1$datapath, delim = ","),
-           tsv = vroom::vroom(input$file1$datapath, delim = "\t"),
-           xls = vroom::vroom(input$file1$datapath, delim = ","),
-           xlsx = vroom::vroom(input$file1$datapath, delim = ","),
-           validate("Invalid file: Please upload a .csv , .tsv , .xls or .xlsx file!")
-    )
+  output$graph1<-renderPlotly({
+    ggplot(datae2(),aes(x=dates,y=weight))+
+      geom_line(linetype='solid',col='tomato3')+
+      labs(x='Dates', y='Weight Harvested',
+           title=paste('weight of',input$choose_item,'exported',sep=' '),
+           subtitle='A graphical representation of each crop',caption='Jefferson Ndeke,Econstats')+
+      theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),
+            plot.subtitle =element_text(hjust = 0.5),
+            plot.caption = element_text(hjust = 0,face = 'italic'),
+            axis.text = element_text(angle=45,hjust=1))
+  })
+  output$DateRange <- renderText({
+    req(input$datum)
+    validate(need(!is.na(input$datum[1]) & !is.na(input$datum[2]),
+                  "Error: Please provide both a start and an end date."))
+    validate(need(input$datum[1] < input$datum[2], "Error: Start date should be earlier than end date."))
+  })
+  output$table2<- renderDataTable(
+    exports%>% select(dates,input$col_view)%>% filter(
+      dates > as.POSIXct(input$datum[1]) & dates < as.POSIXct(input$datum[2])))
+  output$DateRange2 <- renderText({
+    req(input$date2)
+    validate(need(!is.na(input$date2[1]) & !is.na(input$date2[2]), "Error: Please provide both a start and an end date."))
+    validate(need(input$date2[1] < input$date2[2], "Error: Start date should be earlier than end date."))
+  })
+  output$text2<-renderText({
+    validate(need(!is.na(input$select_crop), "Select a maximum of three Crops"))
+    validate(need(!is.na(input$date2[1]) & !is.na(input$date2[2]), "Error: Please provide both a start and an end date."))
+    validate(need(input$date2[1] < input$date2[2], "Error: Start date should be earlier than end date."))
+  })
+  output$table22<- renderDataTable(
+    exports1%>% select(dates,crop,weight)%>% filter(exports1$crop%in% input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])))
+  datae3<-reactive({
+    validate(need(!is.na(input$select_crop), "You have not selected any crop to view"))
+    exports1%>% select(dates,crop,weight)%>% filter(exports1$crop%in% input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2]))
   })
   style <- reactive({
     input$graph_type
@@ -222,47 +247,95 @@ server <- function(input, output, session) {
            "Comparative Bar" = ggplot(datae3(),aes(x=dates,y=weight,fill=crop))+geom_bar(stat='identity',position='dodge'),
            "Cumulative Bar"= ggplot(datae3(),aes(x=dates,y=weight,fill=crop))+geom_bar(stat='identity'))
   })
-  login.page = 
-  paste(
-  isolate(session$clientData$url_protocol),
-  "//",
-  isolate(session$clientData$url_hostname),
-  ":",
-  isolate(session$clientData$url_port),
-  sep = ""
+  output$graph2<-renderPlotly({
+    plottype() +
+      labs(fill='Crops',x='Dates', y='Weight Harvested',
+           title=paste('A',input$graph_type,'Graph for',input$select_crop[1],input$select_crop[2],'and',input$select_crop[3],'exported',sep=' '),
+           subtitle='Comparison of Crops Weights exported',caption='Jefferson Ndeke,Econstats')+
+      theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),
+            plot.subtitle =element_text(hjust = 0.5),
+            plot.caption = element_text(hjust = 0,face = 'italic'),
+            axis.text = element_text(angle=45,hjust=1))
+  })
+  datae <-reactive({
+    req(input$date)
+    validate(need(!is.na(input$date[1]) & !is.na(input$date[2]), "Error: Please provide both a start and an end date."))
+    validate(need(input$date[1] < input$date[2], "Error: Start date should be earlier than end date."))
+    kenya_status1 %>%
+      filter(
+        indicator== input$indicator,
+        date > as.POSIXct(input$date[1]) & date < as.POSIXct(input$date[2]
+        ))
+  })
+  output$graph3<-renderPlotly({
+    ggplot(datae(),
+           aes(x=date,y=value))+
+      geom_line(linetype='solid',col='tomato3')+
+      labs(x='Dates', y='Debt Trend',
+           title=paste('Debt Analysis of',input$indicator,sep=' '),subtitle='Analysis of Kenyan Debt by Type',
+           caption='Jefferson Ndeke,Econstats')+
+      theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),
+            plot.subtitle =element_text(hjust = 0.5),plot.caption = element_text(hjust = 0,face = 'italic'),
+            axis.text = element_text(angle=45,hjust=1))
+  })
+  upload<- reactive({
+    req(input$file1)
+    ext <- tools::file_ext(input$file1$name)
+    switch(ext,
+           csv = vroom::vroom(input$file1$datapath, delim = ","),
+           tsv = vroom::vroom(input$file1$datapath, delim = "\t"),
+           xls = vroom::vroom(input$file1$datapath, delim = ","),
+           xlsx = vroom::vroom(input$file1$datapath, delim = ","),
+           validate("Invalid file: Please upload a .csv , .tsv , .xls or .xlsx file!")
+    )
+  })
+  output$head <- renderDataTable({
+    head(upload(), input$n)
+  },options = list(dom = 'Bfrtip',
+                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                 )
   )
-USER <- reactiveValues(Logged = F)
-observe({
+  login.page = 
+    paste(
+      isolate(session$clientData$url_protocol),
+      "//",
+      isolate(session$clientData$url_hostname),
+      ":",
+      isolate(session$clientData$url_port),
+      sep = ""
+    )
+  USER <- reactiveValues(Logged = F)
+  observe({
     if (USER$Logged == FALSE) {
       if (!is.null(input$Login)) {
         if (input$Login > 0) {
           Username <- isolate(input$userName)
           Password <- isolate(input$passwd)
           if (nrow(login_details[login_details$user == Username & 
-                             login_details$pswd == Password,]) >= 1)                        {USER$Logged <- TRUE
-          }
+                                 login_details$pswd == Password,]) >= 1)                        {USER$Logged <- TRUE
           }
         }
       }
     }
+  }
   )
-observeEvent(input$Login, {
-  shinyalert('PLEASE WAIT', "Signing in...", 
-             type = "info", 
-             timer =1300,
-             showConfirmButton = FALSE,
-             animation = "pop",
-             imageUrl= 'logo.png'
-             )
+  observeEvent(input$Login, {
+    shinyalert('PLEASE WAIT', "Signing in...", 
+               type = "info", 
+               timer =1300,
+               showConfirmButton = FALSE,
+               animation = "pop",
+               imageUrl= 'logo.png'
+    )
   })
   observeEvent(input$Login, { 
     if(USER$Logged!=TRUE){
-    shinyFeedback::showFeedbackDanger(inputId = 'passwd',
-                                      text = 'INVALID DETAILS!')
-      } else {
-        hideFeedback('passwd')
-        }
-    })
+      shinyFeedback::showFeedbackDanger(inputId = 'passwd',
+                                        text = 'INVALID DETAILS!')
+    } else {
+      hideFeedback('passwd')
+    }
+  })
   observeEvent(input$Login, { 
     if(USER$Logged!=TRUE){
       shinyFeedback::showFeedbackDanger(inputId = 'userName',text = '')
@@ -270,9 +343,6 @@ observeEvent(input$Login, {
       hideFeedback('userName')
     }
   })
-exports1<- readxl::read_xlsx(path='~/Programming/R/DATA/exports1.xlsx')
-exports<- readxl::read_xlsx(path='~/Programming/R/DATA/exports.xlsx')
-kenya_status1<- readxl::read_xlsx('~/Programming/R/DATA/kenya_status1.xlsx')
   output$sidebarpanel <-renderUI({
     if (USER$Logged == TRUE) {
       div(
@@ -287,16 +357,15 @@ kenya_status1<- readxl::read_xlsx('~/Programming/R/DATA/kenya_status1.xlsx')
           menuItem("Company data",
                    tabName = "t_item2",
                    icon = icon("database")),
-          menuItem(
-            "sales trend",
-            tabName = "t_item3",
-            icon = icon("chart-line")),
+          menuItem("sales trend",
+                   tabName = "t_item3",
+                   icon = icon("chart-line")),
           menuItem('Your data',
                    tabName='t_item4',
                    icon = icon('file-import')),
           menuItem('Settings',
-           tabName='t_item5',
-           icon = icon('hammer')),
+                   tabName='t_item5',
+                   icon = icon('hammer')),
           menuItem('About',
                    tabName ='t_item6',
                    icon= icon('address-card'))
@@ -308,227 +377,199 @@ kenya_status1<- readxl::read_xlsx('~/Programming/R/DATA/kenya_status1.xlsx')
     if (USER$Logged == TRUE) {
       tabItems(
         tabItem(tabName = 't_item1',
-                fluidPage(
+                fluidRow(
+                  column(12,
                   titlePanel('DATA FOR A SINGLE CROP BASED ON TYPE'),
-                  output$page<-renderUI({tabsetPanel(
-                    tabPanel(title='Crops Data',icon=icon('table'),
-                             titlePanel('Data Table'),
-                             sidebarLayout(
-                               sidebarPanel(
-                  selectInput(
-                    inputId="choose_category",
-                    label= "TYPE OF EXPORTS",
-                    multiple = FALSE,
-                    choices = unique(exports1$type),
-                    selected= unique(exports1$type)[1]),
-                  output$cat_choice <- renderUI({
-                    selectInput(inputId="choose_item",
-                                label="Select Crop",
-                                multiple= FALSE,
-                                selected=unique(exports1$crop)[1], 
-                                choices = unique(exports1
-                                                 [exports1$type==input$choose_category,"crop"]))}),
-                  dateRangeInput(inputId = 'date3',
-                                 label = strong('Period'),
-                                 start= min(exports1$dates),
-                                 end=max(exports1$dates),
-                                 min=min(exports1$dates),
-                                 max=max(exports1$dates)),
-                  tags$head(
-                    tags$style(HTML("
-                              .shiny-output-error-validation {
-                              color: #ff0000;
-                              font-weight: bold;
-                              }
-                              "))
-                  )),
-                  mainPanel(
-        output$text1<-renderText({
-          req(input$date3)
-          validate(need(!is.na(input$date3[1]) & !is.na(input$date3[2]), "Error: Please provide both a start and an end date."))
-                  validate(need(input$date3[1] < input$date3[2], "Error: Start date should be earlier than end date."))}),
-                  output$tb_chosen <-renderDataTable(exports1%>%filter(
-                    exports1$type%in%input$choose_category &
-                    exports1$crop%in%input$choose_item & dates > as.POSIXct(input$date3[1]) & dates < as.POSIXct(input$date3[2])))
-                  ))),tabPanel(title='Graph',icon=icon('chart-area'),
-                             dateRangeInput(inputId = 'date4',
-                                            label = strong('Period'),
-                                            start= min(exports1$dates),
-                                            end=max(exports1$dates),
-                                            min=min(exports1$dates),
-                                            max=max(exports1$dates)),
-                             tags$head(
-                               tags$style(HTML("
-                              .shiny-output-error-validation {
-                              color: #ff0000;
-                              font-weight: bold;
-                              }
-                              "))
-                             ),
-                             output$table5<-renderPlotly({
-                               ggplot(datae2(),aes(x=dates,y=weight))+
-                                 geom_line(linetype='solid',col='tomato3')+
-                                 labs(x='Dates', y='Weight Harvested',title=paste('weight of',input$choose_item,'exported',sep=' '),subtitle='A graphical representation of each crop',caption='Jefferson Ndeke,Econstats')+
-                                 theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),plot.subtitle =element_text(hjust = 0.5),plot.caption = element_text(hjust = 0,face = 'italic'),axis.text = element_text(angle=45,hjust=1))
-                             })
-                               
-                             ))})
-                )),
-        tabItem(
-          tabName = "t_item2",
-          fluidPage(
-            titlePanel('COMPARISON DATA'),
-            output$page <-renderUI({tabsetPanel(tabPanel(title='Data Table',icon=icon('table'),titlePanel('VIEW DIFFERENT CROPS'),
-            selectInput(inputId="col_view",
-                        label="Select Crops to view",
-                        multiple = TRUE,
-                        selected= unique(exports$dates),
-                        choices = unique(colnames(exports))),
-            dateRangeInput('datum',strong('Period'),
-                           start= min(exports$dates),
-                           end=max(exports$dates),
-                           min=min(exports$dates),
-                           max=max(exports$dates)),
-            tags$head(
-              tags$style(HTML("
-                              .shiny-output-error-validation {
-                              color: #ff0000;
-                              font-weight: bold;
-                              }
-                              "))
-              ),
-            output$DateRange <- renderText({
-              req(input$datum)
-              validate(need(!is.na(input$datum[1]) & !is.na(input$datum[2]),
-                         "Error: Please provide both a start and an end date."))
-              validate(need(input$datum[1] < input$datum[2], "Error: Start date should be earlier than end date."))
-              }),
-            output$table1<- renderDataTable(
-              exports%>% select(dates,input$col_view)%>% filter(
-                dates > as.POSIXct(input$datum[1]) & dates < as.POSIXct(input$datum[2])))
-            ),
-            tabPanel(title='Visualise', icon=icon('eye'),titlePanel('GRAPHS'),
-                       pickerInput(
-                       inputId = 'select_crop',
-                       label = strong('Select Crop'),
-                       multiple = TRUE,
-                       options=list(`max-options`=3),
-                       choices =unique(exports1$crop),
-                       selected =''),
-                       dateRangeInput(inputId = 'date2',
-                                      label = strong('Period'),
-                                      start= min(exports1$dates),
-                                      end=max(exports1$dates),
-                                      min=min(exports1$dates),
-                                      max=max(exports1$dates)),
-                     tags$head(
-                       tags$style(HTML("
-                              .shiny-output-error-validation {
-                              color: #ff0000;
-                              font-weight: bold;
-                              }
-                              "))),
-                     fluidRow(tabsetPanel(tabPanel(title='Table',
-                     output$DateRange2 <- renderText({
-                       req(input$date2)
-                       validate(need(!is.na(input$date2[1]) & !is.na(input$date2[2]),
-                                     "Error: Please provide both a start and an end date."))
-                       validate(need(input$date2[1] < input$date2, "Error: Start date should be earlier than end date."))
-                     }),
-                     output$tableu<- renderDataTable(
-                       exports1%>% select(dates,crop,weight)%>% filter(exports1$crop%in% input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2]))
-                     )),
-                    tabPanel(title='Graphs',titlePanel('Type of Graph'),
-                             radioButtons(inputId='graph_type',label='Choose the Graph',choices=c('Line','Comparative Bar','Cumulative Bar'),selected=NULL ),
-                             output$graph3<-renderPlotly({
-                       plottype() +
-                         labs(fill='Crops',x='Dates', y='Weight Harvested',title=paste('A',input$graph_type,'Graph for',input$select_crop[1],input$select_crop[2],'and',input$select_crop[3],'exported',sep=' '),subtitle='Comparison of Crops Weights exported',caption='Jefferson Ndeke,Econstats')+
-                         theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),plot.subtitle =element_text(hjust = 0.5),plot.caption = element_text(hjust = 0,face = 'italic'),axis.text = element_text(angle=45,hjust=1))
-                     }))))
-                     )
-            )
-              })
-            )
-          ),
+                  output$page1<-renderUI({
+                    tabsetPanel(
+                      tabPanel(title='Crops Data',icon=icon('table'),
+                               titlePanel('Data Table'),
+                               sidebarLayout(
+                                 sidebarPanel(
+                                   selectInput(inputId="choose_category",
+                                               label= "TYPE OF EXPORTS",
+                                               multiple = FALSE,
+                                               choices = unique(exports1$type),
+                                               selected= unique(exports1$type)[1]),
+                                   output$cat_choice<-renderUI({
+                                     selectInput(inputId="choose_item",
+                                                 label="Select Crop",
+                                                 multiple= FALSE,
+                                                 selected=unique(exports1$crop)[1],
+                                                 choices = unique(exports1
+                                                                  [exports1$type==input$choose_category,"crop"]))}),
+                                   dateRangeInput(inputId = 'date3',
+                                                  label = strong('Period'),
+                                                  start= min(exports1$dates),
+                                                  end=max(exports1$dates),
+                                                  min=min(exports1$dates),
+                                                  max=max(exports1$dates)),
+                                   tags$head(
+                                     tags$style(
+                                       HTML(".shiny-output-error-validation {color: #ff0000;font-weight: bold;}")))
+                                 ),
+                                 mainPanel(
+                                   textOutput('text1'),
+                                   withSpinner(dataTableOutput('tb_chosen'),
+                                               type=1,
+                                               color='#fe9000'))
+                               )
+                      ),
+                      tabPanel(title='Graph',
+                               icon=icon('chart-area'),
+                               dateRangeInput(inputId = 'date4',
+                                              label = strong('Period'),
+                                              start= min(exports1$dates),
+                                              end=max(exports1$dates),
+                                              min=min(exports1$dates),
+                                              max=max(exports1$dates)),
+                               tags$head(
+                                 tags$style(
+                                   HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
+                               withSpinner(plotlyOutput('graph1'),
+                                           type=1,
+                                           color='#fe9000')
+                      )
+                    )
+                  })
+                  )
+                )
+        ),
+        tabItem(tabName = "t_item2",
+                fluidRow(
+                  column(12,
+                  titlePanel('COMPARISON DATA'),
+                  output$page2 <-renderUI({
+                    tabsetPanel(
+                      tabPanel(title='Data Table',
+                               icon=icon('table'),
+                               titlePanel('VIEW DIFFERENT CROPS'),
+                               selectInput(inputId="col_view",
+                                           label="Select Crops to view",
+                                           multiple = TRUE,
+                                           selected= unique(exports$dates),
+                                           choices = unique(colnames(exports))),
+                               dateRangeInput('datum',strong('Period'),
+                                              start= min(exports$dates),
+                                              end=max(exports$dates),
+                                              min=min(exports$dates),
+                                              max=max(exports$dates)),
+                               tags$head(
+                                 tags$style(
+                                   HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
+                               textOutput('DateRange'),
+                               withSpinner(dataTableOutput('table2'),
+                                           type=1,
+                                           color='#fe9000')),
+                      tabPanel(title='Visualise', icon=icon('eye'),
+                               titlePanel('GRAPHS'),
+                               pickerInput(
+                                        inputId = 'select_crop',
+                                        label = strong('Select Crop'),
+                                        multiple = TRUE,
+                                        options=list(`max-options`=3),
+                                        choices =unique(exports1$crop),
+                                        selected =''),
+                                      dateRangeInput(inputId = 'date2',
+                                                     label = strong('Period'),
+                                                     start= min(exports1$dates),
+                                                     end=max(exports1$dates),
+                                                     min=min(exports1$dates),
+                                                     max=max(exports1$dates)),
+                                      tags$head(
+                                        tags$style(
+                                          HTML(".shiny-output-error-validation {color: #ff0000;font-weight: bold;}"))),
+                                      tabsetPanel(
+                                 tabPanel(title='Table',
+                                            textOutput('DateRange2'),
+                                            withSpinner(dataTableOutput('table22'),
+                                                        type=1,
+                                                        color='#fe9000')),
+                                   tabPanel(title='Graphs',
+                                            titlePanel('Type of Graph'),
+                                            radioButtons(inputId='graph_type',
+                                                         label='Choose the Graph',
+                                                         choices=c('Line','Comparative Bar','Cumulative Bar'),
+                                                         selected=NULL),
+                                            textOutput('text2'),
+                                            withSpinner(plotlyOutput('graph2'),
+                                                        type=1,
+                                                        color='#fe9000'
+                                            ))
+                                 )
+                      )
+                    )
+                  }))
+                )
+        ),
         tabItem(tabName = "t_item3",
-                output$page<-renderUI({
-                fluidPage(titlePanel('TRENDS'),tabsetPanel(tabPanel(
-                  title ='Graphs',icon = icon('chart-pie'),
-                          titlePanel('KENYA DEBT'),
-                          sidebarLayout(
-                            sidebarPanel(
-                              selectInput(inputId = "indicator",
-                                          label = strong("Type of Debt"),
-                                      choices = unique(kenya_status1$indicator),
-                                          selected = "domestic_debt"),
-                              dateRangeInput("date",
-                                             strong("period"), 
-                                             start = "1999-09-01",
-                                             end = "2021-06-01",
-                                             min = "1999-09-01",  
-                                             max = "2021-06-01")
-                            ),
-                            mainPanel(
-                              tags$head(
-                                tags$style(HTML("
-                              .shiny-output-error-validation {
-                              color: #ff0000;
-                              font-weight: bold;
-                              }
-                              "))
-                              ),
-                              tags$a(href = "https://www.centralbank.go.ke/public-debt/", "Source: Central Bank of Kenya", target = "_blank"),
-                           
-      output$table4<-renderPlotly({
-    ggplot(datae(),aes(x=date,y=value))+
-          geom_line(linetype='solid',col='tomato3')+
-          labs(x='Dates', y='Debt Trend',title=paste('Debt Analysis of',input$indicator,sep=' '),subtitle='Analysis of Kenyan Debt by Type',caption='Jefferson Ndeke,Econstats')+
-          theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),plot.subtitle =element_text(hjust = 0.5),plot.caption = element_text(hjust = 0,face = 'italic'),axis.text = element_text(angle=45,hjust=1))
-       })
-         ))),
-      tabPanel(title ='Summary',icon = icon('calculator'))))})),
-           tabItem(
-              tabName = 't_item4',
-             fluidPage(
-               output$page<- renderUI({
-                 tabsetPanel(
-                 tabPanel('import Data',
-                          fileInput('file1','Data',buttonLabel='Upload...',accept=c('.cvs','.tsv','.xls','.xlsx')),
-                          numericInput('n','No. of Rows to preview',value=10,min=1,step=1),
-                          tags$head(
-                            tags$style(HTML("
-                              .shiny-output-error-validation {
-                              color: #ff0000;
-                              font-weight: bold;
-                              }
-                              "))
-                          ),
-                          output$head <- renderDataTable({
-                            head(upload(), input$n)
-                          }),
-                          output$download <- downloadHandler(
-                            filename = function() {
-                              paste0(input$file1, ".csv")
-                            },
-                            content = function(file) {
-                              vroom::vroom(upload(),file)
-                            }
-                          )
-                          ),
-                 tabPanel('Set parameters'),
-                 tabPanel('visualise Results'
-                 ))
-               })
-             )
-           ),
-    tabItem(tabName='t_item6',
-            fluidPage(
-              output$page<- renderUI({
-                
-              })
-            ))
-        )
-      } else {
+                output$page3<-renderUI({
+                  fluidRow(
+                    column(12,
+                    titlePanel('TRENDS'),
+                           tabsetPanel(
+                             tabPanel(title ='Graphs',
+                                      icon = icon('chart-pie'),
+                                      titlePanel('KENYA DEBT'),
+                                      sidebarLayout(
+                                        sidebarPanel(
+                                          selectInput(inputId = "indicator",
+                                                      label = strong("Type of Debt"),
+                                                      choices = unique(kenya_status1$indicator),
+                                                      selected = "domestic_debt"),
+                                          dateRangeInput(inputId ="date",
+                                                         label=strong("period"),
+                                                         start = "1999-09-01",
+                                                         end = "2021-06-01",
+                                                         min = "1999-09-01", 
+                                                         max = "2021-06-01")
+                                          ),
+                                        mainPanel(
+                                          tags$head(
+                                            tags$style(
+                                              HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
+                                          tags$a(href = "https://www.centralbank.go.ke/public-debt/", "Source: Central Bank of Kenya",
+                                                 target = "_blank"),
+                                          withSpinner(plotlyOutput('graph3'),
+                                                      type=1,
+                                                      color='#fe9000'
+                      ))
+                      )
+                      ),
+                    tabPanel(title ='Summary',
+                             icon = icon('calculator')))))})),
+        tabItem(tabName = 't_item4',
+          fluidRow(
+            column(12,
+            output$page4<- renderUI({
+              tabsetPanel(
+                tabPanel('import Data',
+                         fileInput('file1','Data',buttonLabel='Upload...',accept=c('.cvs','.tsv','.xls','.xlsx')),
+                         numericInput('n','No. of Rows to preview',value=10,min=1,step=1),
+                         tags$head(
+                           tags$style(
+                             HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))
+                         ),
+                         withSpinner(dataTableOutput('head'),
+                                     type=1,
+                                     color='#fe9000')),
+                tabPanel('Set parameters'),
+                tabPanel('visualise Results'
+                ))
+            })
+            )
+          )
+        ),
+        tabItem(tabName='t_item5',
+                fluidRow(
+                  column(12,
+                  output$page5<- renderUI({
+                    
+                  })
+                  )
+                ))
+      )
+    } else {
       login
     }
   })
