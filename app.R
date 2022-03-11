@@ -3,6 +3,7 @@ library(readr)
 library(readxl)
 library(plotly)
 library(shiny)
+library(waiter)
 library(shinycssloaders)
 library(shinydashboard)
 library(dashboardthemes)
@@ -143,15 +144,18 @@ header <- dashboardHeader(title = tags$a(tags$img(src='logo.png'),
                                          style = "color:yellow; 
                                          font-family:Candara;
                                          font-size:24px;
-                                         font-style: bold;"))
-sidebar <- dashboardSidebar(uiOutput("sidebarpanel"))
-body <- dashboardBody(withSpinner(uiOutput("body"),
-                                  type = 1,
-                                  color='#fe9000'),
-                      customTheme,
-                      tags$head(includeScript('returnClick.js'))
+                                         font-style: bold;"),
+                          userOutput('user'))
+sidebar <- dashboardSidebar(uiOutput("sidebarpanel")
+)
+body <- dashboardBody(uiOutput("body"),
+  customTheme,
+  tags$head(includeScript('returnClick.js'))
                       )
-ui <-dashboardPage(header,sidebar,body)
+ui <-dashboardPage(header,sidebar,body,
+                   options = list(sidebarExpandOnHover = TRUE),
+                   preloader = list(html = tagList(spin_1(), "Loading ..."), color = "#2fce8f")
+                   )
 login_details <- data.frame(user = c("JEFFERSON","SAM", "PAM", "RON"),
                             pswd = c("123A","123B","123C","123D"))
 login <-fluidRow(
@@ -345,12 +349,7 @@ server <- function(input, output, session) {
   })
   output$sidebarpanel <-renderUI({
     if (USER$Logged == TRUE) {
-      div(
-        sidebarUserPanel(
-          isolate(input$userName),
-          subtitle = a(icon("user"), "LOG OUT", href = login.page)
-        ),
-        sidebarMenu(
+        sidebarMenu(id='tabs',
           menuItem('Dashboard',
                    tabName='t_item1',
                    icon=icon('tachometer-alt')),
@@ -370,11 +369,16 @@ server <- function(input, output, session) {
                    tabName ='t_item6',
                    icon= icon('address-card'))
         )
-      )
     }
   })
   output$body <- renderUI({
     if (USER$Logged == TRUE) {
+      output$user<-renderUser({dashboardUser(
+        name=input$userName,
+        image='user_image.png',
+        footer=p('Beyond Infinity',class='text-centre'),
+        subtitle = a(icon("user"), "LOG OUT", href = login.page)
+      )})
       tabItems(
         tabItem(tabName = 't_item1',
                 fluidRow(
@@ -410,9 +414,7 @@ server <- function(input, output, session) {
                                  ),
                                  mainPanel(
                                    textOutput('text1'),
-                                   withSpinner(dataTableOutput('tb_chosen'),
-                                               type=1,
-                                               color='#fe9000'))
+                                   dataTableOutput('tb_chosen'))
                                )
                       ),
                       tabPanel(title='Graph',
@@ -428,8 +430,9 @@ server <- function(input, output, session) {
                                    HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
                                withSpinner(plotlyOutput('graph1'),
                                            type=1,
-                                           color='#fe9000')
-                      )
+                                           color='#fe9000',
+                                           hide.ui=FALSE)
+                                                     )
                     )
                   })
                   )
@@ -458,9 +461,7 @@ server <- function(input, output, session) {
                                  tags$style(
                                    HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
                                textOutput('DateRange'),
-                               withSpinner(dataTableOutput('table2'),
-                                           type=1,
-                                           color='#fe9000')),
+                               dataTableOutput('table2')),
                       tabPanel(title='Visualise', icon=icon('eye'),
                                titlePanel('GRAPHS'),
                                pickerInput(
@@ -482,9 +483,7 @@ server <- function(input, output, session) {
                                       tabsetPanel(
                                  tabPanel(title='Table',
                                             textOutput('DateRange2'),
-                                            withSpinner(dataTableOutput('table22'),
-                                                        type=1,
-                                                        color='#fe9000')),
+                                            dataTableOutput('table22')),
                                    tabPanel(title='Graphs',
                                             titlePanel('Type of Graph'),
                                             radioButtons(inputId='graph_type',
@@ -492,10 +491,11 @@ server <- function(input, output, session) {
                                                          choices=c('Line','Comparative Bar','Cumulative Bar'),
                                                          selected=NULL),
                                             textOutput('text2'),
-                                            withSpinner(plotlyOutput('graph2'),
-                                                        type=1,
-                                                        color='#fe9000'
-                                            ))
+                                            withSpinner(
+                                              plotlyOutput('graph2'),
+                                              type=1,
+                                              color='#fe9000',
+                                              hide.ui=FALSE))
                                  )
                       )
                     )
@@ -532,8 +532,8 @@ server <- function(input, output, session) {
                                                  target = "_blank"),
                                           withSpinner(plotlyOutput('graph3'),
                                                       type=1,
-                                                      color='#fe9000'
-                      ))
+                                                      color='#fe9000',
+                                                      hide.ui=FALSE))
                       )
                       ),
                     tabPanel(title ='Summary',
@@ -550,9 +550,7 @@ server <- function(input, output, session) {
                            tags$style(
                              HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))
                          ),
-                         withSpinner(dataTableOutput('head'),
-                                     type=1,
-                                     color='#fe9000')),
+                         dataTableOutput('head')),
                 tabPanel('Set parameters'),
                 tabPanel('visualise Results'
                 ))
