@@ -1,9 +1,8 @@
-library(ggplot2)
+library(waiter)
+library(echarts4r)
 library(readr)
 library(readxl)
-library(plotly)
 library(shiny)
-library(waiter)
 library(shinycssloaders)
 library(shinydashboard)
 library(dashboardthemes)
@@ -146,15 +145,14 @@ header <- dashboardHeader(title = tags$a(tags$img(src='logo.png'),
                                          font-size:24px;
                                          font-style: bold;"),
                           userOutput('user'))
-sidebar <- dashboardSidebar(uiOutput("sidebarpanel")
-)
+sidebar <- dashboardSidebar(uiOutput("sidebarpanel"))
 body <- dashboardBody(uiOutput("body"),
-  customTheme,
+  customTheme,useShinyFeedback(),
   tags$head(includeScript('returnClick.js'))
                       )
 ui <-dashboardPage(header,sidebar,body,
                    options = list(sidebarExpandOnHover = TRUE),
-                   preloader = list(html = tagList(spin_1(), "Loading ..."), color = "#2fce8f")
+                   preloader = list(html = tagList(spin_orbiter(), "Loading ..."), color = "#2fce8f")
                    )
 login_details <- data.frame(user = c("JEFFERSON","SAM", "PAM", "RON"),
                             pswd = c("123A","123B","123C","123D"))
@@ -183,11 +181,34 @@ login <-fluidRow(
              br(),
              tags$a(href='http://jeff.com/',
                     'New User',style = "color:#0000b6;")
-         )))
+         ))
+  )
 server <- function(input, output, session) {
   exports1<- readxl::read_xlsx(path='~/Programming/R/DATA/exports1.xlsx')
   exports<- readxl::read_xlsx(path='~/Programming/R/DATA/exports.xlsx')
   kenya_status1<- readxl::read_xlsx('~/Programming/R/DATA/kenya_status1.xlsx')
+  output$menu<-renderMenu({
+    sidebarMenu(
+      menuItem('Dashboard',
+               tabName='t_item1',
+               icon=icon('tachometer-alt')),
+      menuItem("Company data",
+               tabName = "t_item2",
+               icon = icon("database")),
+      menuItem("sales trend",
+               tabName = "t_item3",
+               icon = icon("chart-line")),
+      menuItem('Your data',
+               tabName='t_item4',
+               icon = icon('file-import')),
+      menuItem('Settings',
+               tabName='t_item5',
+               icon = icon('hammer')),
+      menuItem('About',
+               tabName ='t_item6',
+               icon= icon('address-card'))
+    )
+  })
   output$text1<-renderText({
     req(input$date3)
     validate(need(!is.na(input$date3[1]) & !is.na(input$date3[2]), "Error: Please provide both a start and an end date."))
@@ -205,16 +226,19 @@ server <- function(input, output, session) {
       exports1$type%in%input$choose_category &
         exports1$crop%in%input$choose_item & dates > as.POSIXct(input$date4[1]) & dates < as.POSIXct(input$date4[2]))
   })
-  output$graph1<-renderPlotly({
-    ggplot(datae2(),aes(x=dates,y=weight))+
-      geom_line(linetype='solid',col='tomato3')+
-      labs(x='Dates', y='Weight Harvested',
-           title=paste('weight of',input$choose_item,'exported',sep=' '),
-           subtitle='A graphical representation of each crop',caption='Jefferson Ndeke,Econstats')+
-      theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),
-            plot.subtitle =element_text(hjust = 0.5),
-            plot.caption = element_text(hjust = 0,face = 'italic'),
-            axis.text = element_text(angle=45,hjust=1))
+  output$graph1<-renderEcharts4r({
+    datae2()|> 
+      group_by(crop)|>
+      e_charts(dates)|>
+      e_line(weight,symbol='none')|> 
+      e_animation(duration = 4000)|>
+      e_tooltip(trigger='axis')|>
+      e_axis_labels(x='Dates',y = 'Weight Exported in Kgs.')|> 
+      e_title(paste('weight of',input$choose_item,'exported',sep=' '),
+              left='center',top=10)|>
+      e_toolbox_feature(feature = "saveAsImage")|>
+      e_legend(orient = 'vertical',right = '5', top = '15%')|>
+      e_color(my_colors)
   })
   output$DateRange <- renderText({
     req(input$datum)
@@ -244,22 +268,54 @@ server <- function(input, output, session) {
   style <- reactive({
     input$graph_type
   })
+  my_colors<-c('#142262','#ff0100','#01bf01')
   plottype <- reactive({
     switch(style(),
-           "Line" = ggplot(datae3(),aes(x=dates,y=weight,group=crop))+
-             geom_line(aes(col=crop),linetype='solid'),
-           "Comparative Bar" = ggplot(datae3(),aes(x=dates,y=weight,fill=crop))+geom_bar(stat='identity',position='dodge'),
-           "Cumulative Bar"= ggplot(datae3(),aes(x=dates,y=weight,fill=crop))+geom_bar(stat='identity'))
+           "Line" = datae3()|> 
+             group_by(crop)|>
+             e_charts(dates)|>
+             e_line(weight,symbol='none')|> 
+             e_animation(duration = 4000)|>
+             e_tooltip(trigger='axis')|>
+             e_axis_labels(x='Dates',y = 'Weight Exported in Kgs.')|> 
+             e_title(paste('A',input$graph_type,'Graph of',input$select_crop[1],',',input$select_crop[2],'and',input$select_crop[3]),
+                     left='center',top=10)|>
+             e_toolbox_feature(feature = "saveAsImage")|>
+             e_legend(orient = 'vertical',right = '5', top = '15%')|>
+             e_color(my_colors),
+           'Bar'= datae3()|> 
+             group_by(crop)|>
+             e_charts(dates,timeline=TRUE)|>
+             e_bar(weight,itemStyle = list(
+               borderColor = "yellow", borderWidth = '1'))|>
+             e_animation(duration = 4000)|>
+             e_timeline_opts(autoPlay = TRUE, top = "55")|>
+             e_tooltip(trigger='axis')|>
+             e_axis_labels(x='Dates',y = 'Weight Exported in Kgs.')|> 
+             e_title(paste('A',input$graph_type,'Graph of',input$select_crop[1],',',input$select_crop[2],'and',input$select_crop[3]),
+                     left='center',top=10)|>
+             e_toolbox_feature(feature = "saveAsImage")|>
+             e_legend(orient = 'vertical', 
+                      right = '5', top = '15%')|>
+             e_color(my_colors),
+           "Comparative Bar" = datae3()|> 
+             group_by(crop)|>
+             e_charts(dates)|>
+             e_bar(weight)|>
+             e_animation(duration = 4000)|>
+             e_tooltip(trigger='axis')|>
+             e_axis_labels(x='Dates',y = 'Weight Exported in Kgs.')|> 
+             e_title(paste('A',input$graph_type,'Graph of',input$select_crop[1],',',input$select_crop[2],'and',input$select_crop[3]),
+                     left='center',top=10)|>
+             e_toolbox_feature(feature = "saveAsImage")|>
+             e_legend(orient = 'vertical', 
+                      right = '5', top = '15%')|>
+             e_color(my_colors)
+           )
   })
-  output$graph2<-renderPlotly({
-    plottype() +
-      labs(fill='Crops',x='Dates', y='Weight Harvested',
-           title=paste('A',input$graph_type,'Graph for',input$select_crop[1],input$select_crop[2],'and',input$select_crop[3],'exported',sep=' '),
-           subtitle='Comparison of Crops Weights exported',caption='Jefferson Ndeke,Econstats')+
-      theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),
-            plot.subtitle =element_text(hjust = 0.5),
-            plot.caption = element_text(hjust = 0,face = 'italic'),
-            axis.text = element_text(angle=45,hjust=1))
+  output$graph2<-renderEcharts4r({
+    plottype() 
+          
   })
   datae <-reactive({
     req(input$date)
@@ -271,17 +327,34 @@ server <- function(input, output, session) {
         date > as.POSIXct(input$date[1]) & date < as.POSIXct(input$date[2]
         ))
   })
-  output$graph3<-renderPlotly({
-    ggplot(datae(),
-           aes(x=date,y=value))+
-      geom_line(linetype='solid',col='tomato3')+
-      labs(x='Dates', y='Debt Trend',
-           title=paste('Debt Analysis of',input$indicator,sep=' '),subtitle='Analysis of Kenyan Debt by Type',
-           caption='Jefferson Ndeke,Econstats')+
-      theme(plot.title = element_text(size=15,hjust = 0.5,face = 'bold'),
-            plot.subtitle =element_text(hjust = 0.5),plot.caption = element_text(hjust = 0,face = 'italic'),
-            axis.text = element_text(angle=45,hjust=1))
+  output$graph3<-renderEcharts4r({
+    datae()|>
+      e_charts(date)|>
+      e_line(value,symbol='none')|>
+      e_animation(duration = 4000)|>
+      e_tooltip(trigger='axis')|>
+      e_axis_labels(x='Years',y = 'Level of debt in Ksh.')|>
+      e_title(paste('Trend in',input$indicator,'in Kenya'),
+              left='center',top=10)|>
+      e_toolbox_feature(feature = "saveAsImage")|>
+      e_color(my_colors)|>
+      e_legend(orient = 'vertical', 
+               right = '5', top = '15%')
   })
+  doc<- data.frame(val = c(0.9, 0.5, 0.4))
+  output$liquid<- renderEcharts4r({
+    doc|>
+      e_charts()|>
+      e_liquid(val)|>
+      e_animation(duration = 4000)|>
+      e_title('Total Debt to Debt Ceiling Ratio ',left='center')
+  })
+output$clock<-renderEcharts4r({
+  e_charts() |> 
+    e_gauge(62, "PERCENT") |> 
+    e_animation(duration = 4000)|>
+    e_title('Total Debt to GDP Ratio',left='center')
+})
   upload<- reactive({
     req(input$file1)
     ext <- tools::file_ext(input$file1$name)
@@ -295,10 +368,7 @@ server <- function(input, output, session) {
   })
   output$head <- renderDataTable({
     head(upload(), input$n)
-  },options = list(dom = 'Bfrtip',
-                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-                 )
-  )
+  })
   login.page = 
     paste(
       isolate(session$clientData$url_protocol),
@@ -349,31 +419,15 @@ server <- function(input, output, session) {
   })
   output$sidebarpanel <-renderUI({
     if (USER$Logged == TRUE) {
-        sidebarMenu(id='tabs',
-          menuItem('Dashboard',
-                   tabName='t_item1',
-                   icon=icon('tachometer-alt')),
-          menuItem("Company data",
-                   tabName = "t_item2",
-                   icon = icon("database")),
-          menuItem("sales trend",
-                   tabName = "t_item3",
-                   icon = icon("chart-line")),
-          menuItem('Your data',
-                   tabName='t_item4',
-                   icon = icon('file-import')),
-          menuItem('Settings',
-                   tabName='t_item5',
-                   icon = icon('hammer')),
-          menuItem('About',
-                   tabName ='t_item6',
-                   icon= icon('address-card'))
-        )
+      sidebarMenu(id = "menu",
+                  sidebarMenuOutput("menu")
+                  )
     }
   })
   output$body <- renderUI({
     if (USER$Logged == TRUE) {
-      output$user<-renderUser({dashboardUser(
+      output$user<-renderUser({
+        dashboardUser(
         name=input$userName,
         image='user_image.png',
         footer=p('Beyond Infinity',class='text-centre'),
@@ -428,10 +482,11 @@ server <- function(input, output, session) {
                                tags$head(
                                  tags$style(
                                    HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
-                               withSpinner(plotlyOutput('graph1'),
-                                           type=1,
-                                           color='#fe9000',
-                                           hide.ui=FALSE)
+                               withSpinner(
+                                 echarts4rOutput('graph1'),
+                                 type=1,
+                                 color='#fe9000',
+                                 hide.ui=FALSE)
                                                      )
                     )
                   })
@@ -488,11 +543,11 @@ server <- function(input, output, session) {
                                             titlePanel('Type of Graph'),
                                             radioButtons(inputId='graph_type',
                                                          label='Choose the Graph',
-                                                         choices=c('Line','Comparative Bar','Cumulative Bar'),
+                                                         choices=c('Line','Bar','Comparative Bar'),
                                                          selected=NULL),
                                             textOutput('text2'),
                                             withSpinner(
-                                              plotlyOutput('graph2'),
+                                             echarts4rOutput('graph2'),
                                               type=1,
                                               color='#fe9000',
                                               hide.ui=FALSE))
@@ -530,14 +585,27 @@ server <- function(input, output, session) {
                                               HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
                                           tags$a(href = "https://www.centralbank.go.ke/public-debt/", "Source: Central Bank of Kenya",
                                                  target = "_blank"),
-                                          withSpinner(plotlyOutput('graph3'),
+                                          withSpinner(echarts4rOutput('graph3'),
                                                       type=1,
                                                       color='#fe9000',
                                                       hide.ui=FALSE))
-                      )
-                      ),
+                                        )
+                                      ),
                     tabPanel(title ='Summary',
-                             icon = icon('calculator')))))})),
+                             icon = icon('calculator'),
+                             titlePanel('CONSTANTS'),
+                    column(6,
+                           withSpinner(echarts4rOutput('liquid'),
+                                       type=1,
+                                       color='#fe9000',
+                                       hide.ui=FALSE)),
+                    column(6,
+                           withSpinner(echarts4rOutput('clock'),
+                                       type=1,
+                                       color='#fe9000',
+                                       hide.ui=FALSE))
+                    )
+                    )))})),
         tabItem(tabName = 't_item4',
           fluidRow(
             column(12,
@@ -550,7 +618,8 @@ server <- function(input, output, session) {
                            tags$style(
                              HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))
                          ),
-                         dataTableOutput('head')),
+                         dataTableOutput('head')
+                         ),
                 tabPanel('Set parameters'),
                 tabPanel('visualise Results'
                 ))
