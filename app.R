@@ -1,3 +1,4 @@
+library(ECharts2Shiny)
 library(waiter)
 library(echarts4r)
 library(readr)
@@ -17,28 +18,20 @@ library(png)
 customTheme <- shinyDashboardThemeDIY(
   ### general
   appFontFamily = "Candara"
-  ,appFontColor = "rgb(0,0,153)"
-  ,primaryFontColor = "rgb(0,0,255)"
+  ,appFontColor = "rgb(8, 2, 132)"
+  ,primaryFontColor = "rgb(8, 2, 132)"
   ,infoFontColor = "rgb(8,58,68)"
   ,successFontColor = "rgb(238,255,0)"
   ,warningFontColor = "rgb(255,255,0)"
   ,dangerFontColor = "rgb(255,0,0)"
-  ,bodyBackColor = cssGradientThreeColors(
-    direction = "down"
-    ,colorStart = "rgb(47,206,143)"
-    ,colorMiddle = "rgb(81,242,177)"
-    ,colorEnd = "rgb(145,233,198)"
-    ,colorStartPos = 0
-    ,colorMiddlePos = 50
-    ,colorEndPos = 100
-  )
+  ,bodyBackColor = "rgb(177, 219, 0)"
   
   ### header
   ,logoBackColor = "rgb(51,153,115)"
   
-  ,headerButtonBackColor = "rgb(0,255,255)"
+  ,headerButtonBackColor = "rgb(177, 219, 0)"
   ,headerButtonIconColor = "rgb(0,0,204)"
-  ,headerButtonBackColorHover = "rgb(255,255,0)"
+  ,headerButtonBackColorHover = "rgb(102,255,255)"
   ,headerButtonIconColorHover = "rgb(102,51,0)"
   
   ,headerBackColor = "rgb(0,179,179)"
@@ -46,7 +39,7 @@ customTheme <- shinyDashboardThemeDIY(
   ,headerBoxShadowSize = "2px 2px 2px"
   
   ### sidebar
-  ,sidebarBackColor ="rgb(47,206,143)"
+  ,sidebarBackColor ="rgb(190, 135, 0)"
   ,sidebarPadding = 0
   
   ,sidebarMenuBackColor = "53,255,148"
@@ -62,10 +55,10 @@ customTheme <- shinyDashboardThemeDIY(
   ,sidebarSearchIconColor = "rgb(102,51,0)"
   ,sidebarSearchBorderColor = "rgb(102,255,255)"
   
-  ,sidebarTabTextColor = "rgb(8,2,191)"
+  ,sidebarTabTextColor = "rgb(8, 2, 132)"
   ,sidebarTabTextSize = 18
   ,sidebarTabBorderStyle = "none none solid none"
-  ,sidebarTabBorderColor = "rgb(35,106,135)"
+  ,sidebarTabBorderColor = "rgb(0, 0, 3)"
   ,sidebarTabBorderWidth = 1
   
   ,sidebarTabBackColorSelected = cssGradientThreeColors(
@@ -77,7 +70,7 @@ customTheme <- shinyDashboardThemeDIY(
     ,colorMiddlePos = 30
     ,colorEndPos = 100
   )
-  ,sidebarTabTextColorSelected = "rgb(102,255,255)"
+  ,sidebarTabTextColorSelected = "rgb(0, 113, 0)"
   ,sidebarTabRadiusSelected = "0px 20px 20px 0px"
   
   ,sidebarTabBackColorHover = cssGradientThreeColors(
@@ -96,10 +89,10 @@ customTheme <- shinyDashboardThemeDIY(
   ,sidebarTabRadiusHover = "0px 20px 20px 0px"
   
   ### boxes
-  ,boxBackColor = "rgb(44,222,235)"
+  ,boxBackColor = "rgb(190, 135, 0)"
   ,boxBorderRadius = 5
   ,boxShadowSize = "0px 1px 1px"
-  ,boxShadowColor = "#33001a"
+  ,boxShadowColor = "rgb(107, 33, 104)"
   ,boxTitleSize = 16
   ,boxDefaultColor = "rgb(170,234,5)"
   ,boxPrimaryColor = "rgb(138,268,183)"
@@ -110,31 +103,31 @@ customTheme <- shinyDashboardThemeDIY(
   
   ,tabBoxTabColor = "rgb(44,255,255)"
   ,tabBoxTabTextSize = 14
-  ,tabBoxTabTextColor = "rgb(17,12,156)"
+  ,tabBoxTabTextColor = "rgb(2, 3, 102)"
   ,tabBoxTabTextColorSelected = "rgb(90,252,154)"
   ,tabBoxBackColor = "rgb(3,3,156)"
   ,tabBoxHighlightColor = "rgba(44,222,235,1)"
   ,tabBoxBorderRadius = 5
   
   ### inputs
-  ,buttonBackColor = "rgb(102,255,255)"
+  ,buttonBackColor = "rgb(255, 255, 0)"
   ,buttonTextColor = "rgb(0,0,102)"
-  ,buttonBorderColor = "rgb(0,204,0)"
+  ,buttonBorderColor = "rgb(0, 255, 0)"
   ,buttonBorderRadius = 5
   
-  ,buttonBackColorHover = "rgb(255,255,0)"
-  ,buttonTextColorHover = "rgb(102,51,0)"
+  ,buttonBackColorHover = "rgb(0,255,255)"
+  ,buttonTextColorHover = "rgb(163, 164, 162)"
   ,buttonBorderColorHover = "rgb(118,118,102)"
   
-  ,textboxBackColor = "rgb(173,173,133)"
-  ,textboxBorderColor = "rgb(255,255,0)"
+  ,textboxBackColor = "rgb(255, 255, 0)"
+  ,textboxBorderColor = "rgb(0,255,255)"
   ,textboxBorderRadius = 5
   ,textboxBackColorSelect = "rgb(0,255,255)"
-  ,textboxBorderColorSelect = "rgb(102,255,255)"
+  ,textboxBorderColorSelect = "rgb(254, 1, 0)"
   
   ### tables
-  ,tableBackColor = "rgb(75,255,255)"
-  ,tableBorderColor = "rgb(179,0,218)"
+  ,tableBackColor = "rgb(190, 135, 0)"
+  ,tableBorderColor = "rgb(7, 255, 255)"
   ,tableBorderTopSize = 1
   ,tableBorderRowSize = 1
 )
@@ -152,7 +145,7 @@ body <- dashboardBody(uiOutput("body"),
                       )
 ui <-dashboardPage(header,sidebar,body,
                    options = list(sidebarExpandOnHover = TRUE),
-                   preloader = list(html = tagList(spin_orbiter(), "Loading ..."), color = "#2fce8f")
+                   preloader = list(html = tagList(spin_orbiter(), "Loading ..."), color = "#b1db00")
                    )
 login_details <- data.frame(user = c("JEFFERSON","SAM", "PAM", "RON"),
                             pswd = c("123A","123B","123C","123D"))
@@ -163,7 +156,6 @@ login <-fluidRow(
          br(),
          box(icon=icon("lock"),title = " SIGN IN TO INFINICALS",
              status="warning",
-             background="olive",
              solidHeader= TRUE,
              textInput("userName",
                        label = div(icon("user-plus",
@@ -234,7 +226,7 @@ server <- function(input, output, session) {
       e_animation(duration = 4000)|>
       e_tooltip(trigger='axis')|>
       e_axis_labels(x='Dates',y = 'Weight Exported in Kgs.')|> 
-      e_title(paste('weight of',input$choose_item,'exported',sep=' '),
+      e_title(paste('Weight of',input$choose_item,'exported',sep=' '),
               left='center',top=10)|>
       e_toolbox_feature(feature = "saveAsImage")|>
       e_legend(orient = 'vertical',right = '5', top = '15%')|>
@@ -268,7 +260,7 @@ server <- function(input, output, session) {
   style <- reactive({
     input$graph_type
   })
-  my_colors<-c('#142262','#ff0100','#01bf01')
+  my_colors<-c('#01038d','#d80105','#01fff8')
   plottype <- reactive({
     switch(style(),
            "Line" = datae3()|> 
@@ -287,7 +279,7 @@ server <- function(input, output, session) {
              group_by(crop)|>
              e_charts(dates,timeline=TRUE)|>
              e_bar(weight,itemStyle = list(
-               borderColor = "yellow", borderWidth = '1'))|>
+               borderColor = "red", borderWidth = '1'))|>
              e_animation(duration = 4000)|>
              e_timeline_opts(autoPlay = TRUE, top = "55")|>
              e_tooltip(trigger='axis')|>
@@ -310,9 +302,28 @@ server <- function(input, output, session) {
              e_toolbox_feature(feature = "saveAsImage")|>
              e_legend(orient = 'vertical', 
                       right = '5', top = '15%')|>
+             e_color(my_colors),
+           'Pie'= datae3()|>
+             group_by(dates)|>
+             e_charts(crop)|>
+             e_pie(weight)|>
+           e_animation(duration = 4000)|>
+             e_title(paste('A',input$graph_type,'Graph of',input$select_crop[1],',',input$select_crop[2],'and',input$select_crop[3]),
+                     left='center',top=10)|>
+             e_toolbox_feature(feature = "saveAsImage")|>
+             e_legend(orient = 'vertical', 
+                      right = '5', top = '15%')|>
              e_color(my_colors)
            )
   })
+  datam<-reactive({
+  exports%>% select(dates,avocado,tea,coffee)%>% 
+      data.frame(row.names = 1)%>% head()
+  })
+renderBarChart(div_id = "test", 
+                            grid_left = '1%', 
+                            direction = "vertical",
+                            data=datam())
   output$graph2<-renderEcharts4r({
     plottype() 
           
@@ -531,8 +542,8 @@ output$clock<-renderEcharts4r({
                                                      start= min(exports1$dates),
                                                      end=max(exports1$dates),
                                                      min=min(exports1$dates),
-                                                     max=max(exports1$dates)),
-                                      tags$head(
+                                                     max=max(exports1$dates)), 
+                               tags$head(
                                         tags$style(
                                           HTML(".shiny-output-error-validation {color: #ff0000;font-weight: bold;}"))),
                                       tabsetPanel(
@@ -543,16 +554,22 @@ output$clock<-renderEcharts4r({
                                             titlePanel('Type of Graph'),
                                             radioButtons(inputId='graph_type',
                                                          label='Choose the Graph',
-                                                         choices=c('Line','Bar','Comparative Bar'),
+                                                         choices=c('Line','Bar','Comparative Bar','Pie'),
                                                          selected=NULL),
                                             textOutput('text2'),
                                             withSpinner(
-                                             echarts4rOutput('graph2'),
+                                             echarts4rOutput('graph2'), 
                                               type=1,
                                               color='#fe9000',
-                                              hide.ui=FALSE))
+                                              hide.ui=FALSE)
+                    ),
+                    tabPanel(title='More Visuals',
+                             titlePanel('Combined Bar Graph'),
+                  tags$div(id="test", style="width:100%;height:400px;"),
+                             deliverChart(div_id = "test")
                                  )
                       )
+                    )
                     )
                   }))
                 )
@@ -588,7 +605,8 @@ output$clock<-renderEcharts4r({
                                           withSpinner(echarts4rOutput('graph3'),
                                                       type=1,
                                                       color='#fe9000',
-                                                      hide.ui=FALSE))
+                                                      hide.ui=FALSE)
+                                         )
                                         )
                                       ),
                     tabPanel(title ='Summary',
