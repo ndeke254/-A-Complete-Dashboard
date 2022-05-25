@@ -1,5 +1,5 @@
 modal_dialog1 <- function(date,indicator,value,edit) {
-  kenya_status1<-read.csv("~/Programming/R/DATA/kenya_status1.csv")
+  kenya_status1<- readxl::read_xlsx(path = "~/Programming/R/DATA/kenya_status1.xlsx")
   if(edit) {
     x <- "Submit Debt Edits"
   } else {

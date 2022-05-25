@@ -35,9 +35,15 @@ theme1 <- theme(
   axis.title = element_text(colour = "darkblue")
 )
 
-exports<- read.csv("~/Programming/R/DATA/exports.csv")
-exports1<-read.csv("~/Programming/R/DATA/exports1.csv")
-kenya_status1<-read.csv("~/Programming/R/DATA/kenya_status1.csv")
+exports<- readxl::read_xlsx(path='~/Programming/R/DATA/exports.xlsx')
+dates <- as.Date(exports$dates)
+exports$dates <-dates
+exports1<- readxl::read_xlsx(path = "~/Programming/R/DATA/exports1.xlsx")
+dates1 <-as.Date(exports1$dates)
+exports1$dates <- dates1
+kenya_status1<- readxl::read_xlsx(path = "~/Programming/R/DATA/kenya_status1.xlsx")
+date <-as.Date(kenya_status1$date)
+kenya_status1$date <-date
 
   source("exports_modal_dialog.R")
 source('debt_modal_dialog.R')
@@ -851,9 +857,9 @@ body<- dashboardBody(
     
     server <- function(input, output, session) {
       
-      debt <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/kenya_status1.csv', read.csv )
-      expos <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/exports1.csv', read.csv )
-      expot <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/exports.csv', read.csv )
+      debt <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/kenya_status1.xlsx', read_excel)
+      expos <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/exports1.xlsx',read_excel )
+      expot <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/exports.xlsx', read_excel )
       
       observe({
         updateDateRangeInput(session, "date",
@@ -895,6 +901,7 @@ body<- dashboardBody(
                              max = max(expot()$dates)
         )
       })
+      
       login.page = 
         paste(
           isolate(session$clientData$url_protocol),
@@ -1045,17 +1052,20 @@ body<- dashboardBody(
                                  selected= not_sel
         )
       })
-      output$tb_chosen <- DT::renderDT (exports1%>%filter(
-        exports1$type%in%input$choose_category &
-          exports1$crop%in%input$choose_item & dates > as.Date(input$date3[1]) & dates < as.Date(input$date3[2])))
+      output$tb_chosen <- DT::renderDT (
+        expos()%>% 
+          filter(
+        expos()$type%in%input$choose_category &
+          expos()$crop%in%input$choose_item & dates > as.POSIXct(input$date3[1]) & dates < as.POSIXct(input$date3[2]))
+        )
       datae2<-reactive({
         req(input$choose_item)
         req(input$date4)
         validate(need(!is.na(input$date4[1]) & !is.na(input$date4[2]), "Error: Please provide both a start and an end date."))
         validate(need(input$date4[1] < input$date4[2], "Error: Start date should be earlier than end date."))
-        exports1%>%filter(
-          exports1$type%in%input$choose_category &
-            exports1$crop%in%input$choose_item & dates > as.Date(input$date4[1]) & dates < as.Date(input$date4[2]))
+        expos() %>%filter(
+          expos() $type%in%input$choose_category &
+            expos()$crop%in%input$choose_item & dates > as.POSIXct(input$date4[1]) & dates < as.POSIXct(input$date4[2]))
       })
       output$graph1<-renderEcharts4r({
         datae2()|> 
@@ -1078,8 +1088,8 @@ body<- dashboardBody(
         validate(need(input$datum[1] < input$datum[2], "Error: Start date should be earlier than end date."))
       })
       output$table2<- DT::renderDT(
-        exports%>% select(dates,input$col_view)%>% filter(
-          dates > as.Date(input$datum[1]) & dates < as.Date(input$datum[2])))
+        expot() %>% select(dates,input$col_view)%>% filter(
+          dates > as.POSIXct(input$datum[1]) & dates < as.POSIXct(input$datum[2])))
       output$DateRange2 <- renderText({
         req(input$date2)
         validate(need(!is.na(input$date2[1]) & !is.na(input$date2[2]), "Error: Please provide both a start and an end date."))
@@ -1091,10 +1101,10 @@ body<- dashboardBody(
         validate(need(input$date2[1] < input$date2[2], "Error: Start date should be earlier than end date."))
       })
       output$table22<- DT::renderDT(
-        exports1%>% select(dates,crop,weight)%>% filter(exports1$crop%in% input$select_crop,dates > as.Date(input$date2[1]) & dates < as.Date(input$date2[2])))
+        expos() %>% select(dates,crop,weight)%>% filter(expos()$crop%in% input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])))
       datae3<-reactive({
         validate(need(!is.na(input$select_crop), "You have not selected any crop to view"))
-        exports1%>% select(dates,crop,weight)%>% filter(exports1$crop%in% input$select_crop,dates > as.Date(input$date2[1]) & dates < as.Date(input$date2[2]))
+        expos() %>% select(dates,crop,weight)%>% filter(expos()$crop%in% input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2]))
       })
       style <- reactive({
         input$graph_type
@@ -1168,17 +1178,17 @@ body<- dashboardBody(
       })
       datae <-reactive({
         req(input$date)
-        kenya_status1 %>%
+        debt() %>%
           filter(
             indicator ==input$indicator,
-            date > as.Date(input$date[1]) & date < as.Date(input$date[2])
+            date > as.POSIXct(input$date[1]) & date < as.POSIXct(input$date[2])
             )
       })
       datae4<-reactive({
         req(input$date)
-       kenya_status1 %>%
+       debt() %>%
           filter(
-            date > as.Date(input$date[1]) & date < as.Date(input$date[2])
+            date > as.POSIXct(input$date[1]) & date < as.POSIXct(input$date[2])
             )
       })
       
@@ -1661,57 +1671,18 @@ body<- dashboardBody(
       
       observeEvent(input$confirm,{
         final<-subset(rv$df, select = -c(Buttons))
-        write.csv(kenya_status1,file = '~/Programming/R/DATA/exports1.csv')
+        writexl::write_xlsx(kenya_status1,
+                            path = '~/Programming/R/DATA/exports1.xlsx')
         removeModal()
       })
       observeEvent(input$confirm1,{
         final1<-subset(rv1$df, select = -c(Buttons))
-        write.csv(kenya_status1,file = '~/Programming/R/DATA/kenya_status1.csv')
+        writexl::write_xlsx(kenya_status1,
+                            path = '~/Programming/R/DATA/kenya_status1.xlsx')
         removeModal()
       })
       
-      observeEvent(input$add_export, {
-        req(input$date)
-        req(input$indicator)
-        observeEvent(input$date, {
-          req(input$date)
-          req(input$indicator)
-          day <-rv1$df %>% dplyr::filter(grepl(input$date,date))%>%
-            filter(stringr::str_detect(indicator,'domestic_debt'))
-          day1 <- rv1$df %>% dplyr::filter(grepl(input$date,date))%>%
-            filter(stringr::str_detect(indicator,'external_debt'))
-          day2<- rv1$df %>% dplyr::filter(grepl(input$date,date))%>%
-            filter(stringr::str_detect(indicator,'total'))
-          if(nrow(day)==0 & nrow(day1)==0 & nrow(day2)==0){
-            updateSelectInput(inputId = "indicator",
-                              choices =c('domestic_debt','external_debt'))
-          }else if(nrow(day)==1 & nrow(day1)==0 & nrow(day2)==0)  {
-            updateSelectInput(inputId = "indicator",
-                              choices ='external_debt')
-          }else if(nrow(day)==0 & nrow(day1)==1 & nrow(day2)==0) {
-            updateSelectInput(inputId = "indicator",
-                              choices ='domestic_debt')
-          }else if(nrow(day)==1 & nrow(day1)==1 & nrow(day2)==0){
-            subs<- rv1$df$date
-            subs1<-rv1$df%>%dplyr::filter(grepl(input$date,date))%>%
-              select(indicator,value)%>%filter(indicator%in%'domestic_debt')%>%select(value)
-            s<- subs1[[1,1]]
-            subs2<-rv1$df%>%dplyr::filter(grepl(input$date,date))%>%
-              select(indicator,value)%>%filter(indicator%in%'external_debt')%>%select(value)
-            t<-subs2[[1]]
-            total=s+t
-            updateSelectInput(inputId = "indicator",
-                              choices ='total')
-            updateNumericInput(session = session,inputId='value',
-                               value=total)
-          }else if(nrow(day)==1 & nrow(day1)==1 & nrow(day2)==1){
-            updateSelectInput(inputId = "indicator",
-                              choices ='')
-          }else{
-            return()
-          }
-        })
-      })
+     
       
       verify<- modalDialog(
         tagList('ARE YOU A DATABASE ADMINISTRATOR AT INFINICALS?'),
@@ -1768,6 +1739,50 @@ body<- dashboardBody(
       observeEvent(input$go,{
         showModal(verify)
       })
+      
+      observeEvent(input$add_export, {
+        req(input$date)
+        req(input$indicator)
+        observeEvent(input$date, {
+          req(input$date)
+          req(input$indicator)
+          day <-rv1$df %>% dplyr::filter(grepl(input$date,date))%>%
+            filter(stringr::str_detect(indicator,'domestic_debt'))
+          day1 <- rv1$df %>% dplyr::filter(grepl(input$date,date))%>%
+            filter(stringr::str_detect(indicator,'external_debt'))
+          day2<- rv1$df %>% dplyr::filter(grepl(input$date,date))%>%
+            filter(stringr::str_detect(indicator,'total'))
+          if(nrow(day)==0 & nrow(day1)==0 & nrow(day2)==0){
+            updateSelectInput(inputId = "indicator",
+                              choices =c('domestic_debt','external_debt'))
+          }else if(nrow(day)==1 & nrow(day1)==0 & nrow(day2)==0)  {
+            updateSelectInput(inputId = "indicator",
+                              choices ='external_debt')
+          }else if(nrow(day)==0 & nrow(day1)==1 & nrow(day2)==0) {
+            updateSelectInput(inputId = "indicator",
+                              choices ='domestic_debt')
+          }else if(nrow(day)==1 & nrow(day1)==1 & nrow(day2)==0){
+            subs<- rv1$df$date
+            subs1<-rv1$df%>%dplyr::filter(grepl(input$date,date))%>%
+              select(indicator,value)%>%filter(indicator%in%'domestic_debt')%>%select(value)
+            s<- subs1[[1,1]]
+            subs2<-rv1$df%>%dplyr::filter(grepl(input$date,date))%>%
+              select(indicator,value)%>%filter(indicator%in%'external_debt')%>%select(value)
+            t<-subs2[[1]]
+            total=s+t
+            updateSelectInput(inputId = "indicator",
+                              choices ='total')
+            updateNumericInput(session = session,inputId='value',
+                               value=total)
+          }else if(nrow(day)==1 & nrow(day1)==1 & nrow(day2)==1){
+            updateSelectInput(inputId = "indicator",
+                              choices ='')
+          }else{
+            return()
+          }
+        })
+      })
+      
       
       
     }

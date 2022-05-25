@@ -1,5 +1,5 @@
 modal_dialog <- function(dates,type,crop, weight,edit) {
-  exports1<-read.csv("~/Programming/R/DATA/exports1.csv")
+  exports1<- readxl::read_xlsx(path = "~/Programming/R/DATA/exports1.xlsx")
   if(edit) {
     x <- "Submit Edits"
   } else {
