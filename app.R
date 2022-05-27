@@ -23,6 +23,7 @@ library(shinyalert)
 library(shinyjs)
 library(png)
 library(later)
+library(DT)
 not_sel <- "Not Selected"
 theme1 <- theme(
   axis.line = element_line(colour = 'grey50', size = .75),
@@ -34,20 +35,41 @@ theme1 <- theme(
   axis.text = element_text(colour = "darkblue"),
   axis.title = element_text(colour = "darkblue")
 )
+myToastOptions <- list(
+  positionClass = "toast-top-right",
+  progressBar = FALSE,
+  timeOut = 3000,
+  closeButton = TRUE,
+  
+  # same as defaults
+  newestOnTop = TRUE,
+  preventDuplicates = FALSE,
+  showDuration = 300,
+  hideDuration = 1000,
+  extendedTimeOut = 1000,
+  showEasing = "linear",
+  hideEasing = "linear",
+  showMethod = "fadeIn",
+  hideMethod = "fadeOut"
+)
 
-exports<- readxl::read_xlsx(path='~/Programming/R/DATA/exports.xlsx')
-dates <- as.Date(exports$dates)
-exports$dates <-dates
-exports1<- readxl::read_xlsx(path = "~/Programming/R/DATA/exports1.xlsx")
-dates1 <-as.Date(exports1$dates)
-exports1$dates <- dates1
-kenya_status1<- readxl::read_xlsx(path = "~/Programming/R/DATA/kenya_status1.xlsx")
-date <-as.Date(kenya_status1$date)
-kenya_status1$date <-date
+exports<- openxlsx::read.xlsx('~/Programming/R/DATA/exports.xlsx',detectDates = TRUE)
+exports1<- openxlsx::read.xlsx('~/Programming/R/DATA/exports1.xlsx',detectDates = TRUE)
+kenya_status1<- openxlsx::read.xlsx('~/Programming/R/DATA/kenya_status1.xlsx',detectDates = TRUE)
 
   source("exports_modal_dialog.R")
 source('debt_modal_dialog.R')
 dataset<-c('Exports','Kenya Debt','Remittances')
+disableActionButton <- function(id,session) {
+  session$sendCustomMessage(type="jsCode",
+                            list(code= paste("$('#",id,"').prop('disabled',true)"
+                                             ,sep="")))
+}
+enableActionButton <- function(id,session) {
+  session$sendCustomMessage(type="jsCode",
+                            list(code= paste("$('#",id,"').prop('disabled',false)"
+                                             ,sep="")))
+}
 
 customTheme <- shinyDashboardThemeDIY(
   ### general
@@ -208,6 +230,14 @@ sidebar <-dashboardSidebar( tags$h2(
     )
 
 body<- dashboardBody(
+  tags$head(tags$script(HTML('
+      Shiny.addCustomMessageHandler("jsCode",
+        function(message) {
+          console.log(message)
+          eval(message.code);
+        }
+      );
+    '))),
   useShinyFeedback(),
   useShinyjs(),
   tags$head(includeScript('returnClick.js')),customTheme,
@@ -245,7 +275,7 @@ body<- dashboardBody(
                                                                   start= min(exports $dates),
                                                                   end=max(exports $dates),
                                                                   min=min(exports$dates),
-                                                                  max=max(exports$dates)),
+                                                                  max=max(exports$dates))
                                                  ),
                                                  mainPanel(
                                                    tags$head(
@@ -432,7 +462,7 @@ body<- dashboardBody(
                                     titlePanel('Kenya Debt'),
                                     sidebarLayout(
                                       sidebarPanel(
-                                        selectInput(inputId = "indicator",
+                                        selectInput(inputId = "indicator1",
                                                     label = strong("Type of Debt"),
                                                     choices = unique(kenya_status1$indicator),
                                                     selected = "domestic_debt"),
@@ -444,7 +474,7 @@ body<- dashboardBody(
                                                        max = max(kenya_status1$date)
                                                        ),
                                         checkboxInput(inputId='comp',
-                                                      label='Compare the Trends'),
+                                                      label='Compare the Trends')
                                       ),
                                       mainPanel(
                                         tabsetPanel(
@@ -532,7 +562,7 @@ body<- dashboardBody(
                                                    useSweetAlert(),
                                                    tags$h2("Download the edited file"),
                                                    downloadButton("download","Download")
-                                          ),
+                                          )
                                           
                                         )
                                       )
@@ -576,7 +606,7 @@ body<- dashboardBody(
                                                    uiOutput("results"),
                                                    numericInput('predict','Predict',
                                                                 value=0),
-                                                   verbatimTextOutput("value"),
+                                                   verbatimTextOutput("value1"),
                                                    br(),
                                                    withSpinner(
                                                      plotlyOutput('graph5'), 
@@ -857,10 +887,16 @@ body<- dashboardBody(
     
     server <- function(input, output, session) {
       
-      debt <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/kenya_status1.xlsx', read_excel)
-      expos <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/exports1.xlsx',read_excel )
-      expot <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/exports.xlsx', read_excel )
-      
+      debt <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/kenya_status1.xlsx',readFunc = function(filePath){ 
+        openxlsx::read.xlsx(filePath,detectDates = TRUE)
+      })
+      expos <- shiny::reactiveFileReader(1000,session, filePath = '~/Programming/R/DATA/exports1.xlsx',readFunc = function(filePath){ 
+        openxlsx::read.xlsx(filePath,detectDates = TRUE)
+        })
+      expot <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/exports.xlsx',readFunc = function(filePath){ 
+        openxlsx::read.xlsx(filePath,detectDates = TRUE)
+      })
+                                         
       observe({
         updateDateRangeInput(session, "date",
                              start = min(debt()$date),
@@ -995,6 +1031,9 @@ body<- dashboardBody(
         )
       })
       output$menu2<- renderMenu({
+        msgs <- apply(messageData, 1, function(row) {
+          messageItem(from = row[["from"]], message = row[["message"]])
+        })
         dropdownMenu(type='messages',badgeStatus='info',
                      messageItem(from='@JoeAgeyo',
                                  message='You have been appointed the Director!',
@@ -1007,7 +1046,9 @@ body<- dashboardBody(
                      messageItem(from='@Dad',
                                  message='Hi,Could you pass by Naivas and have some cereals for me, thanks',
                                  icon=icon('user-circle'),
-                                 time='2022-02-27 17:09')
+                                 time='2022-02-27 17:09'),
+                     dropdownMenu(type = "messages", .list = msgs)
+                     
         )
       })
       output$menu3 <- renderMenu({
@@ -1180,7 +1221,7 @@ body<- dashboardBody(
         req(input$date)
         debt() %>%
           filter(
-            indicator ==input$indicator,
+            indicator%in%input$indicator1,
             date > as.POSIXct(input$date[1]) & date < as.POSIXct(input$date[2])
             )
       })
@@ -1215,7 +1256,7 @@ body<- dashboardBody(
             e_animation(duration = 4000)|>
             e_tooltip(trigger='axis')|>
             e_axis_labels(x='Years',y = 'Level of debt in Ksh.')|>
-            e_title(paste('Trend in',input$indicator,'in Kenya'),
+            e_title(paste('Trend in',input$indicator1,'in Kenya'),
                     left='center',top=10)|>
             e_toolbox_feature(feature = "saveAsImage")|>
             e_color(my_colors)|>
@@ -1442,7 +1483,7 @@ body<- dashboardBody(
           return()
         }
       })
-      output$value <- renderText({
+      output$value1 <- renderText({
         if(axis1() !=not_sel & axis2() !=not_sel){
           x <- upload()[,get(axis1())]
           y <- upload()[,get(axis2())]
@@ -1454,25 +1495,10 @@ body<- dashboardBody(
           return()
         }
       })
-      
-      rv <- shiny::reactiveValues(
-        df = mtcars,
-        dt_row = NULL,
-        add_or_edit = NULL,
-        edit_button = NULL,
-        keep_track_id = nrow(mtcars) + 1
-      )
-      rv1 <- shiny::reactiveValues(
-        df = mtcars1,
-        dt_row = NULL,
-        add_or_edit = NULL,
-        edit_button = NULL,
-        keep_track_id = nrow(mtcars1) + 1
-      )
       observeEvent(input$dataset,{
         if(input$dataset%in%'Exports'){
           updateActionButton(session, 'add_export',label='Add Export')
-          output$dt_table <- DT::renderDT(
+          output$dt_table <- renderDT(
             {
               shiny::isolate(rv$df)
             },
@@ -1482,7 +1508,7 @@ body<- dashboardBody(
           )
         }else if(input$dataset%in% 'Kenya Debt'){
           updateActionButton(session, 'add_export',label='Add Debt Value')
-          output$dt_table <- DT::renderDT(
+          output$dt_table <- renderDT(
             {
               shiny::isolate(rv1$df)
             },
@@ -1502,7 +1528,7 @@ body<- dashboardBody(
                                  'crop',
                                  label=paste('Select',input$type,sep = ' '),
                                  choices=x,
-                                 selected=''
+                                 selected=x[1]
         )
       })
       shiny::observeEvent(input$add_export, {
@@ -1513,23 +1539,40 @@ body<- dashboardBody(
           rv$add_or_edit <- 1
         }else if(input$dataset%in%'Kenya Debt'){
           modal_dialog1(
-            date = "", indicator = "",value = "", edit = FALSE
+            date = "", indicators = "",value = "", edit = FALSE
           )
           rv1$add_or_edit <- 1
         }else{
           return()
         }
       })
-      
+      rv <- shiny::reactiveValues(
+        df = mtcars,
+        dt_row = NULL,
+        add_or_edit = NULL,
+        edit_button = NULL,
+        keep_track_id = nrow(mtcars) + 1
+      )
+      rv1 <- shiny::reactiveValues(
+        df = mtcars1,
+        dt_row = NULL,
+        add_or_edit = NULL,
+        edit_button = NULL,
+        keep_track_id = nrow(mtcars1) + 1
+      )
       shiny::observeEvent(input$current_id, {
         if(input$dataset%in%'Exports'){
           shiny::req(!is.null(input$current_id) & stringr::str_detect(input$current_id, pattern = "delete"))
           rv$dt_row <- which(stringr::str_detect(rv$df$Buttons, pattern = paste0("\\b", input$current_id, "\\b")))
           rv$df <- rv$df[-rv$dt_row, ]
+          proxy <- DT::dataTableProxy("dt_table")
+          DT::replaceData(proxy, rv$df, resetPaging = FALSE, rownames = FALSE)
         }else if(input$dataset%in%'Kenya Debt'){
           shiny::req(!is.null(input$current_id) & stringr::str_detect(input$current_id, pattern = "delete"))
           rv1$dt_row <- which(stringr::str_detect(rv1$df$Buttons, pattern = paste0("\\b", input$current_id, "\\b")))
           rv1$df <- rv1$df[-rv1$dt_row, ]
+          proxy <- DT::dataTableProxy("dt_table")
+          DT::replaceData(proxy, rv1$df, resetPaging = FALSE, rownames = FALSE)
         }else{
           return()
         }
@@ -1548,7 +1591,7 @@ body<- dashboardBody(
           rv1$dt_row <- which(stringr::str_detect(rv1$df$Buttons, pattern = paste0("\\b", input$current_id, "\\b")))
           df <- rv1$df[rv1$dt_row, ]
           modal_dialog1(
-            date= df$date, indicator = df$indicator,value = df$value, edit = TRUE
+            datex= df$date, indicators = df$indicator,value = df$value, edit = TRUE
           )
           rv1$add_or_edit <- NULL
         }else{
@@ -1586,6 +1629,7 @@ body<- dashboardBody(
         rv$keep_track_id <- rv$keep_track_id + 1
         proxy <- DT::dataTableProxy("dt_table")
         shiny::observe({
+          req(input$crop)
           req(input$dates)
           req(input$weight)
           DT::replaceData(proxy, rv$df, resetPaging = FALSE, rownames = FALSE)
@@ -1595,6 +1639,7 @@ body<- dashboardBody(
         shiny::removeModal()
       })
       shiny::observeEvent(input$final_edit, {
+        req(input$crop)
         req(input$weight)
         req(input$dates)
         shiny::removeModal()
@@ -1602,11 +1647,12 @@ body<- dashboardBody(
       
       shiny::observeEvent(input$final_edit1, {
         req(input$value)
-        req(input$date)
+        req(input$datex)
+        req(input$indicators)
         shiny::req(!is.null(input$current_id) & stringr::str_detect(input$current_id, pattern = "edit") & is.null(rv1$add_or_edit))
         rv1$edited_row <- dplyr::tibble(
-          date= input$date,
-          indicator = input$indicator,
+          date= input$datex,
+          indicator = input$indicators,
           value = input$value,
           Buttons = rv1$df$Buttons[rv1$dt_row]
         )
@@ -1615,11 +1661,11 @@ body<- dashboardBody(
       shiny::observeEvent(input$final_edit1,{
         shinyFeedback::feedbackWarning('value',is.na(input$value),"*Required")
         req(input$value)
-        req(input$date)
+        req(input$datex)
         shiny::req(rv1$add_or_edit == 1)
         add_row <- dplyr::tibble(
-          date= input$date,
-          indicator = input$indicator,
+          date= input$datex,
+          indicator = input$indicators,
           value = input$value,
           Buttons = create_btns(rv1$keep_track_id)
         )
@@ -1629,7 +1675,8 @@ body<- dashboardBody(
         proxy <- DT::dataTableProxy("dt_table")
         shiny::observe({
           req(input$value)
-          req(input$date)
+          req(input$datex)
+          req(input$indicators)
           DT::replaceData(proxy, rv1$df, resetPaging = FALSE, rownames = FALSE)
         })
       })
@@ -1638,7 +1685,8 @@ body<- dashboardBody(
       })
       shiny::observeEvent(input$final_edit1, {
         req(input$value)
-        req(input$date)
+        req(input$datex)
+        req(input$indicators)
         shiny::removeModal()
       })
       
@@ -1646,8 +1694,10 @@ body<- dashboardBody(
         if(input$dataset%in%'Exports'){
           showModal(modalDialog(
             tagList('Updating overwrites the existing Exports Data'),
-            title=tags$h2('Update Exports Data'),
-            footer=tagList(actionButton('confirm','Update Data', class   = "btn-info"),
+            title='Update Exports Data',
+            footer=tagList(loadingButton('confirm','Update Data', 
+                                         class   = "btn-info",
+                                         loadingLabel = "Updating..."),
                            modalButton('Cancel')),
             size = 'm',
             easyClose = TRUE
@@ -1656,8 +1706,10 @@ body<- dashboardBody(
         }else if(input$dataset%in%'Kenya Debt'){
           showModal(modalDialog(
             tagList('Updating overwrites the existing Kenya Debt Records'),
-            title=tags$h2('Update Kenya Debt Records'),
-            footer=tagList(actionButton('confirm1','Update Records', class   = "btn-danger"),
+            title='Update Kenya Debt Records',
+            footer=tagList(loadingButton('confirm1','Update Data', 
+                                          class   = "btn-danger",
+                                          loadingLabel = "Updating..."),
                            modalButton('Cancel')),
             
             size = 'm',
@@ -1671,18 +1723,31 @@ body<- dashboardBody(
       
       observeEvent(input$confirm,{
         final<-subset(rv$df, select = -c(Buttons))
-        writexl::write_xlsx(kenya_status1,
-                            path = '~/Programming/R/DATA/exports1.xlsx')
+        openxlsx::write.xlsx(final,
+                             file ='~/Programming/R/DATA/exports1.xlsx',
+                             colNames = TRUE, borders = "columns")
+        resetLoadingButton("confirm")
         removeModal()
+        showToast(
+          "success", 
+          "EXPORTS DATA UPDATED", 
+          .options = myToastOptions
+        )
       })
       observeEvent(input$confirm1,{
         final1<-subset(rv1$df, select = -c(Buttons))
-        writexl::write_xlsx(kenya_status1,
-                            path = '~/Programming/R/DATA/kenya_status1.xlsx')
+        openxlsx::write.xlsx(final1,
+                             file = '~/Programming/R/DATA/kenya_status1.xlsx',
+                             colNames = TRUE, borders = "columns")
+        resetLoadingButton("confirm1")
+        removeModal()
+        showToast(
+          "success", 
+          "DEBT RECORDS UPDATED", 
+          .options = myToastOptions
+        )
         removeModal()
       })
-      
-     
       
       verify<- modalDialog(
         tagList('ARE YOU A DATABASE ADMINISTRATOR AT INFINICALS?'),
@@ -1694,8 +1759,8 @@ body<- dashboardBody(
       
       observeEvent(input$tabs, {
         showModal(verify)
-        }, once=TRUE,ignoreInit=TRUE
-        )
+      }, once=TRUE,ignoreInit=TRUE
+      )
       
       shiny::hideTab('tabs',target = 'Authenticate',session=session)
       
@@ -1739,54 +1804,56 @@ body<- dashboardBody(
       observeEvent(input$go,{
         showModal(verify)
       })
-      
       observeEvent(input$add_export, {
-        req(input$date)
-        req(input$indicator)
-        observeEvent(input$date, {
-          req(input$date)
-          req(input$indicator)
-          day <-rv1$df %>% dplyr::filter(grepl(input$date,date))%>%
-            filter(stringr::str_detect(indicator,'domestic_debt'))
-          day1 <- rv1$df %>% dplyr::filter(grepl(input$date,date))%>%
-            filter(stringr::str_detect(indicator,'external_debt'))
-          day2<- rv1$df %>% dplyr::filter(grepl(input$date,date))%>%
-            filter(stringr::str_detect(indicator,'total'))
-          if(nrow(day)==0 & nrow(day1)==0 & nrow(day2)==0){
-            updateSelectInput(inputId = "indicator",
-                              choices =c('domestic_debt','external_debt'))
-          }else if(nrow(day)==1 & nrow(day1)==0 & nrow(day2)==0)  {
-            updateSelectInput(inputId = "indicator",
-                              choices ='external_debt')
-          }else if(nrow(day)==0 & nrow(day1)==1 & nrow(day2)==0) {
-            updateSelectInput(inputId = "indicator",
-                              choices ='domestic_debt')
-          }else if(nrow(day)==1 & nrow(day1)==1 & nrow(day2)==0){
-            subs<- rv1$df$date
-            subs1<-rv1$df%>%dplyr::filter(grepl(input$date,date))%>%
-              select(indicator,value)%>%filter(indicator%in%'domestic_debt')%>%select(value)
-            s<- subs1[[1,1]]
-            subs2<-rv1$df%>%dplyr::filter(grepl(input$date,date))%>%
-              select(indicator,value)%>%filter(indicator%in%'external_debt')%>%select(value)
-            t<-subs2[[1]]
-            total=s+t
-            updateSelectInput(inputId = "indicator",
-                              choices ='total')
-            updateNumericInput(session = session,inputId='value',
-                               value=total)
-          }else if(nrow(day)==1 & nrow(day1)==1 & nrow(day2)==1){
-            updateSelectInput(inputId = "indicator",
-                              choices ='')
-          }else{
-            return()
-          }
-        })
+        if(input$dataset %in%'Kenya Debt'){
+          req(input$datex)
+          req(input$indicators)
+          observeEvent(input$datex, {
+            req(input$datex)
+            req(input$indicators)
+            day <-rv1$df %>% dplyr::filter(grepl(input$datex,date))%>%
+              filter(stringr::str_detect(indicator,'domestic_debt'))
+            day1 <- rv1$df %>% dplyr::filter(grepl(input$datex,date))%>%
+              filter(stringr::str_detect(indicator,'external_debt'))
+            day2<- rv1$df %>% dplyr::filter(grepl(input$datex,date))%>%
+              filter(stringr::str_detect(indicator,'total'))
+            if(nrow(day)==0 & nrow(day1)==0 & nrow(day2)==0){
+              enableActionButton("final_edit1",session)
+              updateSelectInput(inputId = "indicators",
+                                choices =c('domestic_debt','external_debt'))
+            }else if(nrow(day)==1 & nrow(day1)==0 & nrow(day2)==0)  {
+              enableActionButton("final_edit1",session)
+              updateSelectInput(inputId = "indicators",
+                                choices ='external_debt')
+            }else if(nrow(day)==0 & nrow(day1)==1 & nrow(day2)==0) {
+              enableActionButton("final_edit1",session)
+              updateSelectInput(inputId = "indicators",
+                                choices ='domestic_debt')
+            }else if(nrow(day)==1 & nrow(day1)==1 & nrow(day2)==0){
+              enableActionButton("final_edit1",session)
+              subs<- rv1$df$date
+              subs1<-rv1$df%>%dplyr::filter(grepl(input$datex,date))%>%
+                select(indicator,value)%>%filter(indicator%in%'domestic_debt')%>%select(value)
+              s<- subs1[[1,1]]
+              subs2<-rv1$df%>%dplyr::filter(grepl(input$datex,date))%>%
+                select(indicator,value)%>%filter(indicator%in%'external_debt')%>%select(value)
+              t<-subs2[[1]]
+              total=s+t
+              updateSelectInput(inputId = "indicators",
+                                choices ='total')
+              updateNumericInput(session = session,inputId='value',
+                                 value=total)
+            }else if(nrow(day)==1 & nrow(day1)==1 & nrow(day2)==1){
+              updateSelectInput(inputId = "indicators",
+                                choices ='')
+              disableActionButton("final_edit1",session)
+            }else{
+              return()
+            }
+          })
+        }
       })
-      
-      
       
     }
     
     shinyApp(ui = ui, server = server)
-    
-    

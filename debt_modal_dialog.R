@@ -1,5 +1,5 @@
-modal_dialog1 <- function(date,indicator,value,edit) {
-  kenya_status1<- readxl::read_xlsx(path = "~/Programming/R/DATA/kenya_status1.xlsx")
+modal_dialog1 <- function(datex,indicators,value,edit) {
+  kenya_status1<- openxlsx::read.xlsx('~/Programming/R/DATA/kenya_status1.xlsx',detectDates = TRUE)
   if(edit) {
     x <- "Submit Debt Edits"
   } else {
@@ -16,14 +16,14 @@ modal_dialog1 <- function(date,indicator,value,edit) {
       class = "text-center",
       div(
         style = "display: inline-block;",
-        shiny::dateInput (inputId = "date",
+        shiny::dateInput (inputId = "datex",
                           label = "Date",
                           value = NULL, 
                           width = "200px")
       ),
       div(
         style = "display: inline-block;",
-        shiny::selectInput(inputId = "indicator",
+        shiny::selectInput(inputId = "indicators",
                            label = "Debt type", 
                            width = "200px",
                            choices =c('domestic_debt','external_debt'))

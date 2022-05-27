@@ -1,5 +1,6 @@
 modal_dialog <- function(dates,type,crop, weight,edit) {
-  exports1<- readxl::read_xlsx(path = "~/Programming/R/DATA/exports1.xlsx")
+  exports1<- openxlsx::read.xlsx('~/Programming/R/DATA/exports1.xlsx',detectDates = TRUE)
+  not_sel <- "Not Selected"
   if(edit) {
     x <- "Submit Edits"
   } else {
@@ -26,7 +27,7 @@ modal_dialog <- function(dates,type,crop, weight,edit) {
         shiny::selectInput(inputId = "type",
                            label = "Type", 
                            width = "200px",
-                           selected =type,
+                           selected =unique(exports1$type)[1],
                            choices = unique(exports1$type))
       ),
       div(
@@ -35,7 +36,7 @@ modal_dialog <- function(dates,type,crop, weight,edit) {
                             label = "Crop Exported", 
                             width = "200px",
                             selected =crop,
-                            choices =''
+                            choices =c(not_sel)
         )
       ),
       div(
