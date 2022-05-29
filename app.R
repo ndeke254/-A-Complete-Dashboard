@@ -74,36 +74,52 @@ enableActionButton <- function(id,session) {
 customTheme <- shinyDashboardThemeDIY(
   ### general
   appFontFamily = "Candara"
-  ,appFontColor = "rgb(8, 2, 132)"
-  ,primaryFontColor = "rgb(8, 2, 132)"
+  ,appFontColor = "rgb(0, 0, 0)"
+  ,primaryFontColor = "rgb(0, 0, 0)"
   ,infoFontColor = "rgb(8,58,68)"
   ,successFontColor = "rgb(238,255,0)"
   ,warningFontColor = "rgb(255,255,0)"
   ,dangerFontColor = "rgb(255,0,0)"
-  ,bodyBackColor = "rgb(177, 219, 0)"
+  ,bodyBackColor =cssGradientThreeColors(
+    direction = "down"
+    ,colorStart = "rgb(255, 240, 255)"
+    ,colorMiddle = "rgb(255, 240, 200)"
+    ,colorEnd = "rgb(255, 240,170)"
+    ,colorStartPos = 0
+    ,colorMiddlePos = 50
+    ,colorEndPos = 100
+  )
   
   ### header
-  ,logoBackColor = "rgb(51,153,115)"
+  ,logoBackColor = "rgb(200, 60, 0)"
   
-  ,headerButtonBackColor = "rgb(177, 219, 0)"
-  ,headerButtonIconColor = "rgb(0,0,204)"
-  ,headerButtonBackColorHover = "rgb(102,255,255)"
-  ,headerButtonIconColorHover = "rgb(102,51,0)"
+  ,headerButtonBackColor = "rgb(255, 240, 255)"
+  ,headerButtonIconColor = "rgb(0,0,100)"
+  ,headerButtonBackColorHover ="rgb(50, 50, 50)"
+  ,headerButtonIconColorHover = "rgb(0,255,255)"
   
-  ,headerBackColor = "rgb(0,179,179)"
-  ,headerBoxShadowColor = "#33001a"
+  ,headerBackColor = "rgb(200, 60, 0)"
+  ,headerBoxShadowColor ="rgb(100, 100, 100)"
   ,headerBoxShadowSize = "2px 2px 2px"
   
   ### sidebar
-  ,sidebarBackColor ="rgb(190, 135, 0)"
-  ,sidebarPadding = 0
+  ,sidebarBackColor = cssGradientThreeColors(
+    direction = "down"
+    ,colorStart = "rgb(0, 0, 50)"
+    ,colorMiddle = "rgb(0, 0, 80)"
+    ,colorEnd = "rgb(0, 0, 120)"
+    ,colorStartPos = 0
+    ,colorMiddlePos = 50
+    ,colorEndPos = 100 
+  ) 
+  ,sidebarPadding = 0.5
   
-  ,sidebarMenuBackColor = "53,255,148"
+  ,sidebarMenuBackColor = ""
   ,sidebarMenuPadding = 0.5
   ,sidebarMenuBorderRadius = 0.5
   
-  ,sidebarShadowRadius = "3px 5px 5px"
-  ,sidebarShadowColor = "#33001a"
+  ,sidebarShadowRadius = "2px 2px 2px"
+  ,sidebarShadowColor = "rgb(100,100,100)"
   
   ,sidebarUserTextColor = "rgb(0,255,255)"
   
@@ -111,44 +127,44 @@ customTheme <- shinyDashboardThemeDIY(
   ,sidebarSearchIconColor = "rgb(102,51,0)"
   ,sidebarSearchBorderColor = "rgb(102,255,255)"
   
-  ,sidebarTabTextColor = "rgb(8, 2, 132)"
+  ,sidebarTabTextColor = "rgb(255, 255, 255)"
   ,sidebarTabTextSize = 18
   ,sidebarTabBorderStyle = "none none solid none"
-  ,sidebarTabBorderColor = "rgb(0, 0, 3)"
+  ,sidebarTabBorderColor = "rgb(0, 255, 255)"
   ,sidebarTabBorderWidth = 1
   
-  ,sidebarTabBackColorSelected = cssGradientThreeColors(
+  ,sidebarTabBackColorSelected =cssGradientThreeColors(
     direction = "right"
-    ,colorStart = "rgba(44,222,235,1)"
-    ,colorMiddle = "rgba(44,222,235,1)"
-    ,colorEnd = "rgba(0,255,213,1)"
+    ,colorStart = "rgb(255, 240, 255)"
+    ,colorMiddle = "rgb(255, 240, 200)"
+    ,colorEnd = "rgb(255, 240,170)"
     ,colorStartPos = 0
-    ,colorMiddlePos = 30
+    ,colorMiddlePos = 50
     ,colorEndPos = 100
   )
-  ,sidebarTabTextColorSelected = "rgb(0, 113, 0)"
+  ,sidebarTabTextColorSelected = "rgb(0, 0, 0)"
   ,sidebarTabRadiusSelected = "0px 20px 20px 0px"
   
   ,sidebarTabBackColorHover = cssGradientThreeColors(
     direction = "right"
-    ,colorStart = "rgba(44,222,235,1)"
-    ,colorMiddle = "rgba(44,222,235,1)"
-    ,colorEnd = "rgba(0,255,213,1)"
+    ,colorStart = "rgb(255,150, 0)"
+    ,colorMiddle = "rgb(225, 125, 0)"
+    ,colorEnd = "rgb(200, 100,0)"
     ,colorStartPos = 0
-    ,colorMiddlePos = 30
+    ,colorMiddlePos = 50
     ,colorEndPos = 100
   )
-  ,sidebarTabTextColorHover = "rgb(13,124,94)"
+  ,sidebarTabTextColorHover = "rgb(0,255,255)"
   ,sidebarTabBorderStyleHover = "none none solid none"
-  ,sidebarTabBorderColorHover = "rgb(64,157,203)"
+  ,sidebarTabBorderColorHover = "rgb(200, 60, 0)"
   ,sidebarTabBorderWidthHover = 1
   ,sidebarTabRadiusHover = "0px 20px 20px 0px"
   
   ### boxes
-  ,boxBackColor = "rgb(190, 135, 0)"
+  ,boxBackColor = "rgb(255,240,255)"
   ,boxBorderRadius = 5
   ,boxShadowSize = "0px 1px 1px"
-  ,boxShadowColor = "rgb(107, 33, 104)"
+  ,boxShadowColor = "#ac001a"
   ,boxTitleSize = 16
   ,boxDefaultColor = "rgb(170,234,5)"
   ,boxPrimaryColor = "rgb(138,268,183)"
@@ -166,24 +182,24 @@ customTheme <- shinyDashboardThemeDIY(
   ,tabBoxBorderRadius = 5
   
   ### inputs
-  ,buttonBackColor = "rgb(255, 255, 0)"
-  ,buttonTextColor = "rgb(0,0,102)"
-  ,buttonBorderColor = "rgb(0, 255, 0)"
+  ,buttonBackColor = "rgb(255, 240, 255)"
+  ,buttonTextColor = "rgb(0,0,0)"
+  ,buttonBorderColor = "rgb(200, 60, 0)"
   ,buttonBorderRadius = 5
   
-  ,buttonBackColorHover = "rgb(0,255,255)"
-  ,buttonTextColorHover = "rgb(163, 164, 162)"
+  ,buttonBackColorHover ="rgb(200, 60, 0)"
+  ,buttonTextColorHover = "rgb(0,255,255)"
   ,buttonBorderColorHover = "rgb(118,118,102)"
   
-  ,textboxBackColor = "rgb(255, 255, 0)"
+  ,textboxBackColor = ""
   ,textboxBorderColor = "rgb(0,255,255)"
   ,textboxBorderRadius = 5
-  ,textboxBackColorSelect = "rgb(0,255,255)"
-  ,textboxBorderColorSelect = "rgb(254, 1, 0)"
+  ,textboxBackColorSelect = ""
+  ,textboxBorderColorSelect = "rgb(0,200, 0)"
   
   ### tables
-  ,tableBackColor = "rgb(190, 135, 0)"
-  ,tableBorderColor = "rgb(7, 255, 255)"
+  ,tableBackColor = "rgb(240, 255, 255)"
+  ,tableBorderColor =""
   ,tableBorderTopSize = 1
   ,tableBorderRowSize = 1
 )
@@ -199,35 +215,73 @@ header <- dashboardHeader(dropdownMenuOutput('menu1'),
                                         font-weight: bold;")
                           )
 
-sidebar <-dashboardSidebar( tags$h2(
-    sidebarMenu(id ='base',
+sidebar <-dashboardSidebar(
+  tags$h2(
+    sidebarMenu(
       menuItem('Dashboard',
-               tabName='t_item1',
-               icon=icon('tachometer-alt'),
-               selected= TRUE
-      ),
-      menuItem("Database",
-               tabName = "t_item2",
-               icon = icon("database")
-      ),
+             tabName='t_item1',
+             icon=icon('tachometer-alt'),
+             selected= TRUE
+             ),
+    menuItem("Database",
+             tabName = "t_item2",
+             icon = icon("database"),
+             menuSubItem('By Crop',
+                         tabName = "t_item21",
+                         icon = shiny::icon("angle-double-right")
+                         ),
+             menuSubItem('By Type',
+                         tabName = "t_item22",
+                         icon = shiny::icon("angle-double-right")
+                         ),
+             menuSubItem('Update',
+                         tabName = "t_item23",
+                         icon = shiny::icon("angle-double-right")
+                         )
+             ),
       menuItem("Economic Variables",
                tabName = "t_item3",
-               icon = icon("chart-line")
-      ),
+               icon = icon("chart-line"),
+               menuSubItem('Public Debt',
+                           tabName = "t_item31",
+                           icon = shiny::icon("angle-double-right")
+                               ),
+               menuSubItem('Inflation',
+                           tabName = "t_item32",
+                           icon = shiny::icon("angle-double-right")
+                           ),
+               menuSubItem('Exchange Rate',
+                           tabName = "t_item33",
+                           icon = shiny::icon("angle-double-right")
+                           )
+               ),
       menuItem('Your data',
                tabName='t_item4',
-               icon = icon('file-import')),
+               icon = icon('file-import'),
+               menuSubItem('Import',
+                           tabName = "t_item41",
+                           icon = shiny::icon("angle-double-right")
+                           ),
+               menuSubItem('Visualise',
+                           tabName = "t_item42",
+                           icon = shiny::icon("angle-double-right")
+                           ),
+               menuSubItem('Statistical Summary',
+                           tabName = "t_item43",
+                           icon = shiny::icon("angle-double-right")
+                           )
+               ),
       menuItem('Settings',
                tabName='t_item5',
                icon = icon('hammer')
-      ),
+               ),
       menuItem('About',
                tabName ='t_item6',
                icon= icon('address-card')
                )
-      )
     )
     )
+  )
 
 body<- dashboardBody(
   tags$head(tags$script(HTML('
@@ -237,432 +291,484 @@ body<- dashboardBody(
           eval(message.code);
         }
       );
-    '))),
+    ')
+  )),
   useShinyFeedback(),
   useShinyjs(),
   tags$head(includeScript('returnClick.js')),customTheme,
   tags$head(tags$link(rel='stylesheet',type='text/css',
-                      href='styles.css')),
-    tabItems(
-      tabItem(tabName = 't_item1',
-              fluidRow(
-                column(12,
-                       titlePanel(tags$h3('DATA FOR A SINGLE CROP BASED ON TYPE'))
-                )
+                      href='styles.css')
+  ),
+  tabItems(
+    tabItem(tabName = 't_item1',
+            fluidRow(
+              column(12,
+                     titlePanel(tags$h3('DATA FOR A SINGLE CROP BASED ON TYPE'))
               )
-      ),
-      tabItem(tabName = "t_item2",
-              fluidRow(
-                column(12,
-                       titlePanel(tags$h3('COMPANY DATA')),
-                         tabsetPanel(id='comps',
-                           tabPanel(title='By Crop',
-                                    icon=icon('cloud'),
-                                    titlePanel('View different crops'),
+            )
+    ),
+    tabItem(tabName = "t_item21",
+            fluidRow(
+              column(12,
+                     titlePanel(tags$h3('COMPANY DATA')),
+                     tabsetPanel(
+                       tabPanel(title='Data Table',
+                                icon=icon('table'),
+                                titlePanel('Ranked from latest date of record'),br(),
+                                sidebarLayout(
+                                  sidebarPanel(
+                                    tags$style(".well {background-color: #f0ffff;}"),
+                                    selectInput(inputId="col_view",                           
+                                                label="Select Crops to view",
+                                                multiple = TRUE,
+                                                selected= unique(exports$dates),
+                                                choices = unique(colnames(exports))
+                                    ),
+                                    dateRangeInput('datum',strong('Period'),
+                                                   start= min(exports $dates),
+                                                   end=max(exports $dates),
+                                                   min=min(exports$dates),
+                                                   max=max(exports$dates)
+                                    )
+                                  ),
+                                  mainPanel(
+                                    tags$head(tags$style("table { background-color: #ffff97; }", media="screen", type="text/css")),
+                                    
+                                    tags$head(
+                                      tags$style(
+                                        HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"
+                                        ))),
+                                    textOutput('DateRange'),
+                                    DT::DTOutput('table2'
+                                    )
+                                  )
+                                )
+                       ),
+                       tabPanel(title='Visualise',
+                                icon=icon('eye'),
+                                titlePanel('Graphs'),
+                                sidebarLayout(
+                                  sidebarPanel(
+                                    pickerInput(
+                                      inputId = 'select_crop',
+                                      label = strong('Select Crop'),
+                                      multiple = TRUE,
+                                      options=list(`max-options`=3),
+                                      selected ='',                                          choices =unique(exports1$crop)
+                                    ),
+                                    dateRangeInput(inputId = 'date2',
+                                                   label = strong('Period'),
+                                                   start= min(exports1$dates),
+                                                   end=max(exports1$dates),
+                                                   min=min(exports1$dates),
+                                                   max=max(exports1$dates)
+                                    )
+                                  ),
+                                  mainPanel(
+                                    tags$head(
+                                      tags$style(
+                                        HTML(".shiny-output-error-validation {color: #ff0000;font-weight: bold;}"
+                                        ))),
                                     tabsetPanel(
-                                      tabPanel(title='Data Table',
-                                               icon=icon('table'),
-                                               titlePanel('Ranked from latest date of record'), 
-                                               br(),
-                                               sidebarLayout(
-                                                 sidebarPanel(
-                                                   selectInput(inputId="col_view",
-                                                               label="Select Crops to view",
-                                                               multiple = TRUE,
-                                                               selected= unique(exports$dates),
-                                                               choices = unique(colnames(exports  ))),
-                                                   dateRangeInput('datum',strong('Period'),
-                                                                  start= min(exports $dates),
-                                                                  end=max(exports $dates),
-                                                                  min=min(exports$dates),
-                                                                  max=max(exports$dates))
-                                                 ),
-                                                 mainPanel(
-                                                   tags$head(
-                                                     tags$style(
-                                                       HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
-                                                   textOutput('DateRange'),
-                                                   DT::DTOutput ('table2'))
-                                               )
-                                      ),
-                                      tabPanel(title='Visualise', icon=icon('eye'),
-                                               titlePanel('Graphs'),
-                                               sidebarLayout(
-                                                 sidebarPanel(
-                                                   pickerInput(
-                                                     inputId = 'select_crop',
-                                                     label = strong('Select Crop'),
-                                                     multiple = TRUE,
-                                                     options=list(`max-options`=3),
-                                                     choices =unique(exports1$crop),
-                                                     selected =''),
-                                                   dateRangeInput(inputId = 'date2',
-                                                                  label = strong('Period'),
-                                                                  start= min(exports1$dates),
-                                                                  end=max(exports1$dates),
-                                                                  min=min(exports1$dates),
-                                                                  max=max(exports1$dates))
-                                                 ),
-                                                 mainPanel(
-                                                   tags$head(
-                                                     tags$style(
-                                                       HTML(".shiny-output-error-validation {color: #ff0000;font-weight: bold;}"))),
-                                                   tabsetPanel(
-                                                     tabPanel(title='Table',
-                                                              br(),
-                                                              textOutput('DateRange2'),
-                                                              DT::DTOutput('table22')),
-                                                     tabPanel(title='Graphs',
-                                                              titlePanel('Type of Graph'),
-                                                              radioButtons(inputId='graph_type',
-                                                                           label='Choose the Graph',
-                                                                           choices=c('Line','Bar','Comparative Bar','Pie'),  inline = TRUE ,
-                                                                           selected=NULL),
-                                                              textOutput('text2'),
-                                                              withSpinner(
-                                                                echarts4rOutput('graph2'), 
-                                                                type=1,
-                                                                color='#fe9000',
-                                                                hide.ui=FALSE)
-                                                     ),
-                                                     tabPanel(title='More Visuals',
-                                                              titlePanel('Combined Bar Graph'),
-                                                              tags$div(id="test", style="width:100%;height:400px;"),
-                                                              deliverChart(div_id = "test")
-                                                     )
-                                                   )
-                                                 )
-                                               )
-                                      )
-                                    )
-                           ),
-                           tabPanel(title='By Type', icon=icon('layer-group'),
-                                    titlePanel('View the type of crop'),
-                                    tabsetPanel(
-                                      tabPanel(title='Crops Data',icon=icon('table'),
-                                               titlePanel('Data Table'),
-                                               sidebarLayout(
-                                                 sidebarPanel(
-                                                   selectInput(inputId="choose_category",
-                                                               label= "TYPE OF EXPORTS",
-                                                               multiple = FALSE,
-                                                               choices = unique(exports1$type),
-                                                               selected= unique(exports1$type)[1]),
-                                                     selectInput(inputId="choose_item",
-                                                                 label="Select Crop",
-                                                                 multiple= FALSE,
-                                                                 selecte='',
-                                                                 choices =c(not_sel) 
-                                                     ),
-                                                   dateRangeInput(inputId = 'date3',
-                                                                  label = strong('Period'),
-                                                                  start= min(exports1$dates),
-                                                                  end=max(exports1$dates),
-                                                                  min=min(exports1$dates),
-                                                                  max=max(exports1$dates)),
-                                                   tags$head(
-                                                     tags$style(
-                                                       HTML(".shiny-output-error-validation {color: #ff0000;font-weight: bold;}")))
-                                                 ),
-                                                 mainPanel(
-                                                   textOutput('text1'),
-                                                   DT::DTOutput('tb_chosen'))
-                                               )
-                                      ),
-                                      tabPanel(title='Graph',
-                                               icon=icon('chart-area'),
-                                               titlePanel('A Line graph'),
-                                               br(),
-                                               box(solidHeader = FALSE,
-                                                   title = "Period Range",
-                                                   status = "success",
-                                                   dateRangeInput(inputId = 'date4',
-                                                                  label = strong('Enter the Period'),
-                                                                  start= min(exports1$dates),
-                                                                  end=max(exports1$dates),
-                                                                  min=min(exports1$dates),
-                                                                  max=max(exports1$dates))
-                                               ),
-                                               br(),
-                                               br(),
-                                               br(),
-                                               br(),
-                                               br(),
-                                               br(),
-                                               br(),
-                                               br(),
-                                               box(solidHeader = FALSE,
-                                                   title = "LINE GRAPH",
-                                                   status = "success",
-                                                   width=12,
-                                                   tags$head(
-                                                     tags$style(
-                                                       HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
-                                                   withSpinner(
-                                                     echarts4rOutput('graph1'),
-                                                     type=1,
-                                                     color='#fe9000',
-                                                     hide.ui=FALSE)
-                                               )
-                                      )
-                                    )
-                           ),
-                           tabPanel(title='Update Database',
-                                    icon=icon('expeditedssl'),
-                                    titlePanel('INFINICALS DATABASE'),
-                                    tabsetPanel(id='tabs',
-                                                tabPanel(title ='View Available Data',icon=icon('eye'), tags$h2(paste('The available data as at',Sys.time(),'is:',sep=' ')),tags$h2('1. Debt in Kenya'),tags$h2('2. Exports'),tags$h2('3. inflation'),tags$h2('Please note that the available data remains under review to expand the Database'),tags$h2('Any changes in this Tab effectively affects the whole application')
-                                                         ),
-                                                tabPanel(title='Authenticate',
-                                                         icon=icon('key'),
-                                                         titlePanel('Administrator'),
-                                                         actionButton('go','OPEN DATABASE'
-                                                         ),
-                                                         br(),br(),
-                                                         textOutput("base")),
-                                                tabPanel(title ='Data',icon=icon('table'),
-                                                         titlePanel('Add/Edit the records'),
-                                                         selectInput(inputId='dataset',
-                                                                     label= "Select the Dataset to Update",
-                                                                     choices = dataset),
-                                                         div(
-                                                           class = "container",
-                                                           div(
-                                                             shiny::actionButton(
-                                                               inputId = "add_export",
-                                                               label = "Add Export",
-                                                               icon = shiny::icon("plus"),
-                                                               class = "btn-success"
-                                                             ),
-                                                             shiny::actionButton(
-                                                               inputId = "update",
-                                                               label = "Update",
-                                                               icon = shiny::icon("database"),
-                                                               class = "btn-success"
-                                                             )
-                                                           )
-                                                         ),
-                                                         br(),
-                                                         DT::DTOutput(outputId = "dt_table"),
-                                                         shiny::includeScript("script.js")
-                                                         )
-                                                )
-                                    )
-                         )
-                )
-              )
-      ),
-      tabItem(tabName = "t_item3",
-                fluidRow(
-                  column(12,
-                         titlePanel(tags$h3('TREND ANALYSIS ')),
-                         tabsetPanel(
-                           tabPanel(title ='Public Debt',
-                                    icon = icon('coins'),
-                                    titlePanel('Kenya Debt'),
-                                    sidebarLayout(
-                                      sidebarPanel(
-                                        selectInput(inputId = "indicator1",
-                                                    label = strong("Type of Debt"),
-                                                    choices = unique(kenya_status1$indicator),
-                                                    selected = "domestic_debt"),
-                                        dateRangeInput(inputId ="date",
-                                                       label=strong("period"),
-                                                       start =min(kenya_status1$date),
-                                                       end = max(kenya_status1$date),
-                                                       min = min(kenya_status1$date), 
-                                                       max = max(kenya_status1$date)
-                                                       ),
-                                        checkboxInput(inputId='comp',
-                                                      label='Compare the Trends')
-                                      ),
-                                      mainPanel(
-                                        tabsetPanel(
-                                          tabPanel('Line Graphs',
-                                                   icon=icon('chart-line'),
-                                                   titlePanel('Growth of Debt against time'),
-                                                   tags$head(
-                                                     tags$style(
-                                                       HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
-                                                   tags$a(href = "https://www.centralbank.go.ke/public-debt/", "Source: Central Bank of Kenya",
-                                                          target = "_blank"),
-                                                   withSpinner(echarts4rOutput('graph3'),
-                                                               type=1,
-                                                               color='#fe9000',
-                                                               hide.ui=FALSE)
-                                                   ),
-                                          tabPanel(title ='Summary',
-                                                   icon = icon('calculator'),
-                                                   titlePanel('Constants'),
-                                                   column(6,
-                                                          withSpinner(echarts4rOutput('liquid'),
-                                                                      type=1,
-                                                                      color='#fe9000',
-                                                                      hide.ui=FALSE)),
-                                                   column(6,
-                                                          withSpinner(echarts4rOutput('clock'),
-                                                                      type=1,
-                                                                      color='#fe9000',
-                                                                      hide.ui=FALSE))
-                                          )
-                                        )
-                                      )
-                                    )
-                           ),
-                           tabPanel(title ='Inflation',
-                                    icon = icon('amazon-pay'),
-                                    titlePanel('Purchasing Power')),
-                           tabPanel(title ='Exchange Rate',
-                                    icon = icon('dollar-sign'),
-                                    titlePanel('Shilling Strength'))
-                         )))),
-      tabItem(tabName = 't_item4',
-              fluidRow(
-                column(12,
-                       titlePanel(tags$h3('PREPARE YOUR DATA')),
-                         tabsetPanel(
-                           tabPanel('Import Data',icon=icon('upload'),
-                                    titlePanel('Upload'),
-                                    sidebarLayout(
-                                      sidebarPanel(
-                                        fileInput('file1','Data',buttonLabel='Upload...',accept=c('.cvs','.tsv','.xls','.xlsx')),
-                                        
-                                        numericInput('n','No. of Rows to preview',value=10,min=1,step=1),
-                                        radioButtons("disp", "Display",
-                                                     choices = c(Head = "head",
-                                                                 All = "all"),
-                                                     selected = "head"),
-                                        actionButton("preview", "Preview")),
-                                      mainPanel(
-                                        tabsetPanel(
-                                          tabPanel('Preview', 
-                                                   icon=icon('eye'),
-                                                   titlePanel('Data Table'),
-                                                   tags$head(
-                                                     tags$style(
-                                                       HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))
-                                                   ),
-                                                   tags$h2("Your apploaded Data will be previewed here"),
-                                                   withSpinner(DT::DTOutput('head'),type=6,color='#fe9000')
-                                          ),
-                                          tabPanel('Edit Uploaded File',
-                                                   icon=icon('highlighter'),
-                                                   titlePanel('Uploaded File'),
-                                                   actionButton("edit", "Edit"),
-                                                   actionButton(
-                                                     inputId = "add_row",
-                                                     label = "Add Row",
-                                                     icon = shiny::icon("plus")),
-                                                   tags$h2("Edited version of your data will be shown here"),
-                                                   withSpinner(DT::DTOutput('reader1'),type=6,color='#fe9000'),shiny::includeScript("script.js")
-                                          ),
-                                          tabPanel('Download',
-                                                   icon=icon('file-pdf'),
-                                                   titlePanel('Edited File'),
-                                                   useSweetAlert(),
-                                                   tags$h2("Download the edited file"),
-                                                   downloadButton("download","Download")
-                                          )
-                                          
-                                        )
-                                      )
-                                    )
-                           ),
-                           tabPanel('Visualise Data',
-                                    icon=icon('eye'),
-                                    titlePanel('Construct Graphs'),
-                                    sidebarLayout(
-                                      sidebarPanel(
-                                        selectInput(inputId='axis1',
-                                                    label= "X-Axis",
-                                                    choices = c(not_sel)), 
-                                        selectInput(inputId='axis2',
-                                                    label= "Y-Axis",
-                                                    choices = c(not_sel)),
-                                        selectInput(inputId='group',
-                                                    label= "Group by",
-                                                    choices = c(not_sel)),
-                                        checkboxInput(inputId='tick',
-                                                      label='Line of Best fit'),
-                                        checkboxInput("se", "Add confidence interval around the regression line",FALSE),
+                                      tabPanel(
+                                        title='Table', 
                                         br(),
-                                        actionButton("run_button", "Run Analysis", 
-                                                     icon = icon("play"))
+                                        textOutput('DateRange2'),
+                                        DT::DTOutput('table22')
                                       ),
-                                      mainPanel(
-                                        tabsetPanel(
-                                          tabPanel('Plot',
-                                                   tags$h2("Choose only numeric data for axis!"),
-                                                   br(),
-                                                   withSpinner(
-                                                     plotlyOutput('graph4'), 
-                                                     type=1,
-                                                     color='#fe9000',
-                                                     hide.ui=FALSE)),
-                                          tabPanel('Regression Model',
-                                                   titlePanel('Plot'),
-                                                   withMathJax(),
-                                                   tags$b("Regression plot:"),
-                                                   uiOutput("results"),
-                                                   numericInput('predict','Predict',
-                                                                value=0),
-                                                   verbatimTextOutput("value1"),
-                                                   br(),
-                                                   withSpinner(
-                                                     plotlyOutput('graph5'), 
-                                                     type=1,
-                                                     color='#fe9000',
-                                                     hide.ui=FALSE),
-                                                   tags$b("Interpretation:"),
-                                                   uiOutput("interpretation"))
-                                        )
+                                      tabPanel(
+                                        title='Graphs',
+                                        titlePanel('Type of Graph'),
+                                        radioButtons(inputId='graph_type',
+                                                     label='Choose the Graph',
+                                                     choices= c('Line','Bar','Comparative Bar','Pie'),
+                                                     inline = TRUE , 
+                                                     selected=NULL),
+                                        textOutput('text2'),
+                                        withSpinner(
+                                          echarts4rOutput('graph2'), 
+                                          type=1,
+                                          color='#fe9000',
+                                          hide.ui=FALSE)
+                                      ),
+                                      tabPanel(title='More Visuals',
+                                               titlePanel('Combined Bar Graph'),
+                                               tags$div(id="test", style="width:100%;height:400px;"),
+                                               deliverChart(div_id = "test")
                                       )
                                     )
+                                  )
+                                )
+                       )
+                     )
+              )
+            )
+    ),
+    tabItem(tabName ='t_item22',
+            fluidRow(
+              column(12,
+                     titlePanel(tags$h3('COMPANY DATA')),
+                     tabsetPanel(
+                       tabPanel(title='data Table',
+                                icon=icon('table'),
+                                titlePanel('View by type of Crop'),
+                                sidebarLayout(
+                                  sidebarPanel(
+                                    selectInput(inputId="choose_category",
+                                                label= "TYPE OF EXPORTS",                   
+                                                multiple = FALSE,
+                                                choices = unique(exports1$type),
+                                                selected= unique(exports1$type)[1]
+                                    ),
+                                    selectInput(inputId="choose_item",
+                                                label="Select Crop",
+                                                multiple= FALSE,
+                                                selecte='',                                            
+                                                choices =c(not_sel) 
+                                    ),  
+                                    dateRangeInput(inputId = 'date3',                                                   
+                                                   label = strong('Period'),                                          
+                                                   start= min(exports1$dates),
+                                                   end=max(exports1$dates), 
+                                                   min=min(exports1$dates),
+                                                   max=max(exports1$dates)
+                                    ),
+                                    tags$head(
+                                      tags$style(
+                                        HTML(".shiny-output-error-validation {color: #ff0000;font-weight: bold;}")))
+                                  ),
+                                  
+                                  mainPanel(
+                                    textOutput('text1'),
+                                    DT::DTOutput('tb_chosen')
+                                  )
+                                )
+                       ),
+                       tabPanel(title='Graph',
+                                icon=icon('chart-area'),
+                                titlePanel('A Line graph'),
+                                br(),
+                                box(solidHeader = FALSE,
+                                    title = "Period Range",
+                                    status = "success",
+                                    dateRangeInput(inputId = 'date4',
+                                                   label = strong('Enter the Period'),
+                                                   start= min(exports1$dates),
+                                                   end=max(exports1$dates),
+                                                   min=min(exports1$dates),
+                                                   max=max(exports1$dates)
+                                    )
+                                ),
+                                br(), br(),br(), br(),br(),
+                                br(),br(),br(),
+                                box(solidHeader = FALSE,
+                                    title = "LINE GRAPH",
+                                    status = "success",
+                                    width=12,
+                                    tags$head(
+                                      tags$style(
+                                        HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}"))),
+                                    withSpinner(
+                                      echarts4rOutput('graph1'),
+                                      type=1,
+                                      color='#fe9000',
+                                      hide.ui=FALSE)
+                                )
+                       )
+                     )
+              )
+            )
+    ),
+    tabItem(tabName ='t_item23',
+            titlePanel(tags$h3('COMPANY DATA')),
+            tabsetPanel(id='tabs',
+                        tabPanel(
+                          title ='View Available Data',
+                          icon=icon('eye'), 
+                          tags$h2(paste(
+                            'The available data as at',Sys.time(),'is:',sep=' ')),
+                          tags$h2('1. Debt in Kenya'),tags$h2('2. Exports'),
+                          tags$h2('3. inflation'),
+                          tags$h2('Please note that the available data remains under review to expand the Database'),tags$h2('Any changes in this Tab effectively affects the whole application')
+                        ),
+                        tabPanel(title='Authenticate',
+                                 icon=icon('key'),    titlePanel('Administrator'),                       actionButton('go','OPEN DATABASE'),
+                                 br(),br(),
+                                 textOutput("base")
+                        ),
+                        tabPanel(title ='Data',icon=icon('table'),                                        
+                                 titlePanel('Add/Edit the records'),                             
+                                 selectInput(inputId='dataset',
+                                             label= "Select the Dataset to Update",
+                                             choices = dataset),
+                                 div(
+                                   class = "container",
+                                   div(
+                                     shiny::actionButton(
+                                       inputId = "add_export",     
+                                       label = "Add Export",
+                                       icon = shiny::icon("plus"),
+                                       class = "btn-success"
+                                     ),
+                                     shiny::actionButton(
+                                       inputId = "update",
+                                       label = "Update",
+                                       icon = shiny::icon("database"),
+                                       class = "btn-success"
+                                     )
+                                   )
+                                 ),
+                                 br(),
+                                 DT::DTOutput(outputId = "dt_table"),
+                                 shiny::includeScript("script.js")
+                        )
+            )
+    ),
+    tabItem(tabName = "t_item31",
+            fluidRow(
+              column(12,
+                     titlePanel(tags$h3('TREND ANALYSIS')
+                     ),
+                     tabsetPanel(
+                       tabPanel(
+                         title ='Public Debt',
+                         icon = icon('coins'),
+                         titlePanel('Kenya Debt'),
+                         sidebarLayout(
+                           sidebarPanel(
+                             selectInput(inputId = "indicator1",
+                                         label = strong("Type of Debt"),
+                                         choices = unique(kenya_status1$indicator),
+                                         selected = "domestic_debt"),
+                             dateRangeInput(inputId ="date",
+                                            label=strong("period"),
+                                            start =min(kenya_status1$date),
+                                            end = max(kenya_status1$date),
+                                            min = min(kenya_status1$date), 
+                                            max = max(kenya_status1$date)
+                             ),
+                             checkboxInput(inputId='comp',
+                                           label='Compare the Trends')
                            ),
-                           tabPanel(
-                             title = "Statistical Summary",
-                             icon=icon('calculator'),
-                             fluidRow(
-                               column(width = 4, strong(textOutput("num_var_1_title"))),
-                               column(width = 4, strong(textOutput("num_var_2_title"))),
-                               column(width = 4, strong(textOutput("fact_var_title")))
-                             ),
-                             fluidRow(
-                               column(width = 4, tableOutput("num_var_1_summary_table")),
-                               column(width = 4, tableOutput("num_var_2_summary_table")),
-                               column(width = 4, tableOutput("fact_var_summary_table"))
-                             ),
-                             fluidRow(
-                               column(width = 6, strong("Combined Statistics")),
-                               column(width = 6, strong("Regression Summary"))
-                             ),
-                             fluidRow(
-                               column(width = 6, tableOutput("combined_summary_table")),
-                               column(width = 6, tableOutput("regression_summary_table"))
+                           mainPanel(
+                             tabsetPanel(
+                               tabPanel('Line Graphs',
+                                        icon=icon('chart-line'),
+                                        titlePanel('Growth of Debt against time'),
+                                        tags$head( tags$style(
+                                          HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}")
+                                        )
+                                        ),
+                                        tags$a(href = "https://www.centralbank.go.ke/public-debt/", "Source: Central Bank of Kenya",
+                                               target = "_blank"),
+                                        withSpinner(echarts4rOutput('graph3'),
+                                                    type=1,
+                                                    color='#fe9000',   
+                                                    hide.ui=FALSE)                       ),
+                               tabPanel(
+                                 title ='Summary',
+                                 icon = icon('calculator'),          
+                                 titlePanel('Constants'),
+                                 column(6,
+                                        withSpinner(echarts4rOutput('liquid'),
+                                                    type=1,
+                                                    color='#fe9000',
+                                                    hide.ui=FALSE)
+                                 ),
+                                 column(6,
+                                        withSpinner(echarts4rOutput('clock'),
+                                                    type=1,     
+                                                    color='#fe9000',
+                                                    hide.ui=FALSE)
+                                 )
+                               )
                              )
                            )
                          )
-                )
+                       )
+                     )
               )
-      ),
-      tabItem(tabName='t_item5',
-              fluidRow(
-                column(12
-                )
-              ))
+            )
+    ),
+    tabItem(tabName ='t_item32',
+            titlePanel('Purchasing Power')
+    ),
+    tabItem(tabName ='t_item33',
+            titlePanel('Shilling Strength')
+    ),
+    tabItem(tabName = 't_item41',
+            fluidRow(
+              column(12,
+                     titlePanel(tags$h3('PREPARE YOUR DATA')),
+                     tabsetPanel(
+                       tabPanel('Import Data',
+                                icon=icon('upload'),
+                                titlePanel('Upload'),
+                                sidebarLayout(
+                                  sidebarPanel(
+                                    fileInput('file1','Data',buttonLabel='Upload...',accept=c('.cvs','.tsv','.xls','.xlsx')
+                                    ),
+                                    numericInput('n','No. of Rows to preview',value=10,min=1,step=1),
+                                    radioButtons("disp", "Display",
+                                                 choices = c(Head = "head",
+                                                             All = "all"),
+                                                 selected = "head"),
+                                    actionButton("preview", "Preview")
+                                  ),
+                                  mainPanel(
+                                    tabsetPanel(
+                                      tabPanel('Preview', 
+                                               icon=icon('eye'),
+                                               titlePanel('Data Table'),
+                                               tags$head(
+                                                 
+                                                 tags$style(
+                                                   HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}")
+                                                 )
+                                               ),
+                                               tags$h2("Your apploaded Data will be previewed here"),
+                                               withSpinner(DT::DTOutput('head'),type=6,color='#fe9000')
+                                      ),
+                                      tabPanel('Edit Uploaded File',
+                                               icon=icon('highlighter'),
+                                               titlePanel('Uploaded File'),
+                                               actionButton("edit", "Edit"),
+                                               actionButton(
+                                                 inputId = "add_row",
+                                                 label = "Add Row",
+                                                 icon = shiny::icon("plus")
+                                               ),
+                                               tags$h2("Edited version of your data will be shown here"),
+                                               withSpinner(DT::DTOutput('reader1'),type=6,color='#fe9000'),
+                                               shiny::includeScript("script.js")
+                                      ),
+                                      tabPanel('Download',
+                                               icon=icon('file-pdf'),
+                                               titlePanel('Edited File'),
+                                               useSweetAlert(),
+                                               tags$h2("Download the edited file"),
+                                               downloadButton("download","Download")
+                                      )
+                                    )
+                                  )
+                                )
+                       )
+                     )
+              )
+            )
+    ),
+    tabItem(tabName= 't_item42',
+            fluidRow(
+              column(12,
+                     titlePanel(tags$h3('PLOT YOUR DATA')),
+                     tabsetPanel(
+                       tabPanel(
+                         title ='Data Plots',
+                         icon = icon('cloud'),
+                         titlePanel('Control your Plot'),
+                         sidebarLayout(
+                           sidebarPanel(
+                             selectInput(inputId='axis1',
+                                         label= "X-Axis",
+                                         choices = c(not_sel)
+                             ),
+                             selectInput(inputId='axis2',
+                                         label= "Y-Axis",
+                                         choices = c(not_sel)
+                             ),
+                             selectInput(inputId='group',
+                                         label= "Group by",
+                                         choices = c(not_sel)
+                             ),
+                             tags$h2('NB:FOR REGRESSION MODEL'),
+                             checkboxInput(inputId='tick',
+                                           label='Line of Best fit'),
+                             checkboxInput("se", "Add confidence interval around the regression line",FALSE),
+                             br(),
+                             actionButton("run_button", "Run Analysis", 
+                                          icon = icon("play")
+                             )
+                           ),
+                           mainPanel(
+                             tabsetPanel(
+                               tabPanel('Regular Plot',
+                                        icon = icon('expeditedssl'),
+                                        tags$h2("Choose only numeric data for axis!"),
+                                        br(),
+                                        withSpinner(
+                                          plotlyOutput('graph4'), 
+                                          type=1,
+                                          color='#fe9000',
+                                          hide.ui=FALSE)),
+                               tabPanel('Regression Model',
+                                        icon=icon('layer-group'),
+                                        titlePanel('Plot'),
+                                        withMathJax(),
+                                        tags$b("Regression plot:"),
+                                        uiOutput("results"),
+                                        numericInput('predict','Predict',
+                                                     value=0), 
+                                        verbatimTextOutput("value1"),
+                                        br(),
+                                        withSpinner(
+                                          plotlyOutput('graph5'),
+                                          type=1,
+                                          color='#fe9000',
+                                          hide.ui=FALSE),
+                                        tags$b("Interpretation:"),
+                                        uiOutput("interpretation")
+                                        
+                               )
+                             )
+                             
+                           )
+                         )))
+              )
+            )
+    ),
+    tabItem(tabName = 't_item43',
+            titlePanel(tags$h3('STATISTICS')),
+            tags$h2('Summary Tables'),
+            fluidRow(
+              column(width = 4, strong(textOutput("num_var_1_title"))
+              ),
+              column(width = 4, strong(textOutput("num_var_2_title"))
+              ),
+              column(width = 4, strong(textOutput("fact_var_title"))
+              )
+            ),
+            fluidRow(
+              column(width = 4, tableOutput("num_var_1_summary_table")),
+              column(width = 4, tableOutput("num_var_2_summary_table")),
+              column(width = 4, tableOutput("fact_var_summary_table"))
+            ),
+            fluidRow(
+              column(width = 6, strong("Combined Statistics")),
+              column(width = 6, strong("Regression Summary"))
+            ),
+            fluidRow(
+              column(width = 6, tableOutput("combined_summary_table")),
+              column(width = 6, tableOutput("regression_summary_table"))
+            )
+    ),
+    tabItem(tabName='t_item5',
+            fluidRow(
+              column(12
+              )
+            )
     )
- )
-    
-    ui <-tabsetPanel(
-      id = "panels",
-      type = "hidden", 
-      selected = "landing_page",
-      tabPanelBody(value = "landing_page",
+  )
+)
+ui <-tabsetPanel(
+  id = "panels",
+  type = "hidden",
+  selected = "landing_page",
+  tabPanelBody(value = "landing_page",
+               tags$div(
+                 class = "landing_page_container", 
+                 tags$div(
+                   class = "landing_page_header",
                    tags$div(
-                     class = "landing_page_container", 
-                     tags$div(
-                       class = "landing_page_header", 
-                       tags$div(
                          class = "landing_page_logo",
                          tags$a(
                            tags$img(src='logo.png')
@@ -703,7 +809,7 @@ body<- dashboardBody(
                      )
                    )
       ),
-      tabPanelBody(
+  tabPanelBody(
         value = "login_page",
         tags$div(id = "div_login",
                  fluidRow(
@@ -739,7 +845,7 @@ body<- dashboardBody(
                  )
         )
       ),
-      tabPanelBody(
+  tabPanelBody(
         value = "dashboard",
         tags$div(id = "div_dashboard",
                  dashboardPage(
@@ -1031,9 +1137,6 @@ body<- dashboardBody(
         )
       })
       output$menu2<- renderMenu({
-        msgs <- apply(messageData, 1, function(row) {
-          messageItem(from = row[["from"]], message = row[["message"]])
-        })
         dropdownMenu(type='messages',badgeStatus='info',
                      messageItem(from='@JoeAgeyo',
                                  message='You have been appointed the Director!',
@@ -1046,8 +1149,7 @@ body<- dashboardBody(
                      messageItem(from='@Dad',
                                  message='Hi,Could you pass by Naivas and have some cereals for me, thanks',
                                  icon=icon('user-circle'),
-                                 time='2022-02-27 17:09'),
-                     dropdownMenu(type = "messages", .list = msgs)
+                                 time='2022-02-27 17:09')
                      
         )
       })
@@ -1150,7 +1252,7 @@ body<- dashboardBody(
       style <- reactive({
         input$graph_type
       })
-      my_colors<-c('#01038d','#d80105','#01fff8')
+      my_colors<-c("#b33e48", "#9ec218", "#57c9f0")
       plottype <- reactive({
         switch(style(),
                "Line" = datae3()|> 
@@ -1168,8 +1270,7 @@ body<- dashboardBody(
                'Bar'= datae3()|> 
                  group_by(crop)|>
                  e_charts(dates,timeline=TRUE)|>
-                 e_bar(weight,itemStyle = list(
-                   borderColor = "red", borderWidth = '1'))|>
+                 e_bar(weight)|>
                  e_animation(duration = 4000)|>
                  e_timeline_opts(autoPlay = TRUE, top = "55")|>
                  e_tooltip(trigger='axis')|>
