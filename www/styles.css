@@ -35,10 +35,10 @@ body {
 .landing_page_header {
     display: flex;
     flex-direction: row-reverse;
-    background-color: yellow;
+    background-color:#fedfa2;
     max-height: 100px;
     padding: 10px;
-    border: red solid  2px;
+    border: yellow  2px;
 }
 
 .landing_page_content {
@@ -91,3 +91,6 @@ body {
 
 }
 
+.pull-right-container {
+  background-color: #fedfa2;
+}

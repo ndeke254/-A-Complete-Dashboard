@@ -39,7 +39,7 @@ modal_dialog1 <- function(datex,indicators,value,edit) {
     size = 'm',
     easyClose = TRUE,
     footer = div(
-      class = "pull-right container",
+      class = "pull-right-container",
       shiny::actionButton(inputId = "final_edit1",
                           label   = x,
                           icon = shiny::icon("edit"),

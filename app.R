@@ -24,6 +24,7 @@ library(shinyjs)
 library(png)
 library(later)
 library(DT)
+library(rhandsontable)
 not_sel <- "Not Selected"
 theme1 <- theme(
   axis.line = element_line(colour = 'grey50', size = .75),
@@ -77,7 +78,7 @@ customTheme <- shinyDashboardThemeDIY(
   ,appFontColor = "rgb(0, 0, 0)"
   ,primaryFontColor = "rgb(0, 0, 0)"
   ,infoFontColor = "rgb(8,58,68)"
-  ,successFontColor = "rgb(238,255,0)"
+  ,successFontColor = "rgb(0, 0, 70)"
   ,warningFontColor = "rgb(255,255,0)"
   ,dangerFontColor = "rgb(255,0,0)"
   ,bodyBackColor =cssGradientThreeColors(
@@ -388,7 +389,7 @@ body<- dashboardBody(
                                         withSpinner(
                                           echarts4rOutput('graph2'), 
                                           type=1,
-                                          color='#fe9000',
+                                          color="#b33e48",
                                           hide.ui=FALSE)
                                       ),
                                       tabPanel(title='More Visuals',
@@ -471,7 +472,7 @@ body<- dashboardBody(
                                     withSpinner(
                                       echarts4rOutput('graph1'),
                                       type=1,
-                                      color='#fe9000',
+                                      color="#b33e48",
                                       hide.ui=FALSE)
                                 )
                        )
@@ -563,7 +564,7 @@ body<- dashboardBody(
                                                target = "_blank"),
                                         withSpinner(echarts4rOutput('graph3'),
                                                     type=1,
-                                                    color='#fe9000',   
+                                                    color="#b33e48",   
                                                     hide.ui=FALSE)                       ),
                                tabPanel(
                                  title ='Summary',
@@ -572,13 +573,13 @@ body<- dashboardBody(
                                  column(6,
                                         withSpinner(echarts4rOutput('liquid'),
                                                     type=1,
-                                                    color='#fe9000',
+                                                    color="#b33e48",
                                                     hide.ui=FALSE)
                                  ),
                                  column(6,
                                         withSpinner(echarts4rOutput('clock'),
                                                     type=1,     
-                                                    color='#fe9000',
+                                                    color="#b33e48",
                                                     hide.ui=FALSE)
                                  )
                                )
@@ -616,47 +617,31 @@ body<- dashboardBody(
                                     actionButton("preview", "Preview")
                                   ),
                                   mainPanel(
-                                    tabsetPanel(
-                                      tabPanel('Preview', 
-                                               icon=icon('eye'),
-                                               titlePanel('Data Table'),
-                                               tags$head(
-                                                 
-                                                 tags$style(
-                                                   HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}")
-                                                 )
-                                               ),
-                                               tags$h2("Your apploaded Data will be previewed here"),
-                                               withSpinner(DT::DTOutput('head'),type=6,color='#fe9000')
-                                      ),
-                                      tabPanel('Edit Uploaded File',
-                                               icon=icon('highlighter'),
-                                               titlePanel('Uploaded File'),
-                                               actionButton("edit", "Edit"),
-                                               actionButton(
-                                                 inputId = "add_row",
-                                                 label = "Add Row",
-                                                 icon = shiny::icon("plus")
-                                               ),
-                                               tags$h2("Edited version of your data will be shown here"),
-                                               withSpinner(DT::DTOutput('reader1'),type=6,color='#fe9000'),
-                                               shiny::includeScript("script.js")
-                                      ),
-                                      tabPanel('Download',
-                                               icon=icon('file-pdf'),
-                                               titlePanel('Edited File'),
-                                               useSweetAlert(),
-                                               tags$h2("Download the edited file"),
-                                               downloadButton("download","Download")
+                                    tags$head(
+                                      tags$style(
+                                        HTML(".shiny-output-error-validation{color: #ff0000;font-weight: bold;}")
+                                        )
+                                      ), 
+                                    conditionalPanel(
+                                    condition = "input.preview",
+                                    div(
+                                      class = "text-left",
+                                      div(
+                                        style = "display: inline-block;",
+                                        tags$h2("Click cell to edit"),
+                                        tags$h2("Left click to edit rows,columns
+                                                and download a csv file")
                                       )
                                     )
+                                  ),br(),
+                                  withSpinner(rHandsontableOutput('hot'),type=1,color="#b33e48")
+                                  )
                                   )
                                 )
                        )
                      )
               )
-            )
-    ),
+            ),
     tabItem(tabName= 't_item42',
             fluidRow(
               column(12,
@@ -683,7 +668,8 @@ body<- dashboardBody(
                              tags$h2('NB:FOR REGRESSION MODEL'),
                              checkboxInput(inputId='tick',
                                            label='Line of Best fit'),
-                             checkboxInput("se", "Add confidence interval around the regression line",FALSE),
+                             checkboxInput("se", 
+                                           "Add confidence interval around the regression line",FALSE),
                              br(),
                              actionButton("run_button", "Run Analysis", 
                                           icon = icon("play")
@@ -698,7 +684,7 @@ body<- dashboardBody(
                                         withSpinner(
                                           plotlyOutput('graph4'), 
                                           type=1,
-                                          color='#fe9000',
+                                          color="#b33e48",
                                           hide.ui=FALSE)),
                                tabPanel('Regression Model',
                                         icon=icon('layer-group'),
@@ -713,7 +699,7 @@ body<- dashboardBody(
                                         withSpinner(
                                           plotlyOutput('graph5'),
                                           type=1,
-                                          color='#fe9000',
+                                          color="#b33e48",
                                           hide.ui=FALSE),
                                         tags$b("Interpretation:"),
                                         uiOutput("interpretation")
@@ -821,25 +807,31 @@ ui <-tabsetPanel(
                                       font-weight: bold;"),
                                  status="warning",
                                  solidHeader= TRUE, 
-                                 textInput("userName",
-                                           label = div(icon("user-plus",
-                                                            style = "color:yellow;"),
-                                                       'Username')
-                                 ),
-                                 passwordInput('passwd',
-                                               label = div(icon("key",
-                                                                style = "color:yellow;"),
-                                                           "Password")
+                                 textInput(
+                                   "userName",
+                                   label = div(icon("user-plus",
+                                                    style = "color:#c83c00;"),
+                                               'Username')
+                                   ),
+                                 passwordInput(
+                                   'passwd',
+                                   label = div(icon("key",
+                                                    style ="color:#c83c00;"),
+                                               "Password")
                                  ),
                                  actionButton("Login", "Log in"),
-                                 footer= tagList( tags$a(href='http://company.fr/',
-                                                         'Forgotten Password',
-                                                         style = "color:#0000b6;"),
-                                                  br(),
-                                                  tags$a(href='http://jeff.com/',
-                                                         'New User',
-                                                         style = "color:#0000b6;")
-                                 ),width =4
+                                 footer= div(class= 'pull-right-container',
+                                          tagList(
+                                 tags$a(href='http://company.fr/',
+                                        'Forgotten Password',
+                                        style = "color:#1db3ff;"),
+                                 br(),
+                                 tags$a(href='http://jeff.com/',
+                                        'New User',
+                                        style = "color:#1db3ff;")
+                                 )
+                                 ),
+                                 width =4
                                  )
                    )
                  )
@@ -1252,7 +1244,7 @@ ui <-tabsetPanel(
       style <- reactive({
         input$graph_type
       })
-      my_colors<-c("#b33e48", "#9ec218", "#57c9f0")
+      my_colors<-c("#b33e48", "#08ffc0", "#4c5138 ")
       plottype <- reactive({
         switch(style(),
                "Line" = datae3()|> 
@@ -1397,8 +1389,10 @@ ui <-tabsetPanel(
       })
       
       df1 <- eventReactive(input$preview,{
+        validate(need(input$n< 11,"Error: Preview a Max of 10 rows!"))
+        validate(need(input$n > 1,"Error: Preview from 1 row!"))
         validate(need(!is.na(input$file1), "Error: You have not uploaded any file!"))
-        validate(need(!is.na(input$n), "Error: Number of Rows can't be empty!"))
+        validate(need(!is.na(input$n), "Error: Number of rows can't be empty!"))
         withProgress(message = 'Previewing...', value = 0, {
           n<- input$n
           for (i in 1:n) {
@@ -1413,55 +1407,30 @@ ui <-tabsetPanel(
           return(upload())
         }
       })
-      output$head <- DT::renderDT({
-        df1()
+      observeEvent(input$n, {
+        shinyFeedback::feedbackWarning('n',input$n > 10,"*Exceeded limit")
+        shinyFeedback::feedbackWarning('n',input$n < 1,"*Exceeded limit")
       })
-      df2 <- eventReactive(input$edit, {
-        validate(need(!is.na(input$file1),"Error: You have not uploaded any file!"))
-        withProgress(message = 'Opening Editor...', value = 0, {
-          k<-10
-          for (i in 1:k) {
-            incProgress(1/k, detail = paste("Loading",(i/k)*100,'%'))
-            Sys.sleep(0.06)
-          }
-        }) 
-        edit(upload())
-      })
-      output$reader1 <- DT::renderDT({
-        df2()
-      })
-      output$download <- downloadHandler(
-        filename = function() {
-          req(input$file1)
-          ext <- tools::file_ext(input$file1$name)
-          paste('newFile-',Sys.Date(),ext,sep = '.')
-        },
-        content = function(file) {
-          ext <- tools::file_ext(input$file1$name)
-          switch(ext,
-                 csv = write.csv(df2(),file),
-                 xls = writexl::write_xlsx(df2(),file),
-                 xlsx =writexl::write_xlsx(df2(),file))
-          progressSweetAlert(
-            session = session, id = "myprogress",
-            title = "Downloading...",
-            display_pct = TRUE, value = 0
-          )
-          for (i in seq_len(50)) {
-            Sys.sleep(0.1)
-            updateProgressBar(
-              session = session,
-              id = "myprogress",
-              value = i*2
-            )
-          }
-          closeSweetAlert(session = session)
-          sendSweetAlert(
-            session = session,
-            title ="Download Complete!",
-            type = "success",
-            animation='pop')
-        }
+      output$hot <- rhandsontable::renderRHandsontable (
+        data <- rhandsontable::rhandsontable(df1(),width = 700, height = 610,
+                                             stretchH = "all",useTypes=FALSE)%>%
+          hot_table(highlightCol = TRUE, highlightRow = TRUE)%>%
+          hot_context_menu(
+            customOpts = list(
+              csv = list(name = "Download to CSV",
+                         callback = htmlwidgets::JS(
+                           "function (key, options) {
+                         var csv = csvString(this, sep=',', dec='.');
+
+                         var link = document.createElement('a');
+                         link.setAttribute('href', 'data:text/plain;charset=utf-8,' +
+                           encodeURIComponent(csv));
+                         link.setAttribute('download', 'data.csv');
+
+                         document.body.appendChild(link);
+                         link.click();
+                         document.body.removeChild(link);
+                       }"))))
       )
       observeEvent(upload(),{
         showNotification(ui="A comma-deliminated csv data is recommended for better analysis",
@@ -1469,6 +1438,7 @@ ui <-tabsetPanel(
                          duration= 10
         )
         choices <- c(not_sel,names(upload()))
+        
         updateSelectInput(session, "axis1", choices = choices)
         updateSelectInput(session, "axis2", choices = choices)
         updateSelectInput(session, "group", choices = choices)
@@ -1480,7 +1450,7 @@ ui <-tabsetPanel(
         validate(need(!is.na(input$file1), "Error: You have not uploaded any file!"))
         draw_plot(upload(), axis1(),axis2(), group())
       })
-      graphty2<-reactive({
+      graphty2<- eventReactive(input$run_button,{
         validate(need(!is.na(input$file1), "Waiting for an Upload to load..."))
         if(input$axis1 !=not_sel & input$axis2 !=not_sel){
           k<- ggplot(data = upload(),
@@ -1518,7 +1488,8 @@ ui <-tabsetPanel(
       num_var_1_summary_table <- eventReactive(input$run_button,{
         create_num_var_table(upload(), axis1())
       })
-      output$num_var_1_summary_table <- renderTable(num_var_1_summary_table(),colnames = FALSE)
+      output$num_var_1_summary_table <- renderTable({
+       num_var_1_summary_table() })
       
       output$num_var_2_title <- renderText(paste("Y Variable:",axis2()))
       
@@ -1526,7 +1497,8 @@ ui <-tabsetPanel(
         create_num_var_table(upload(), axis2())
       })
       
-      output$num_var_2_summary_table <- renderTable(num_var_2_summary_table(),colnames = FALSE)
+      output$num_var_2_summary_table <- renderTable({
+        num_var_2_summary_table() })
       
       output$fact_var_title <- renderText(paste("Factor Variable:",group()))
       
@@ -1534,16 +1506,21 @@ ui <-tabsetPanel(
         create_fact_var_table(upload(), group())
       })
       
-      output$fact_var_summary_table <- renderTable(fact_var_summary_table(),colnames = FALSE)
+      output$fact_var_summary_table <- renderTable(
+        fact_var_summary_table(),colnames = FALSE)
       combined_summary_table <- eventReactive(input$run_button,{
         create_combined_table(upload(), axis1(), axis2(), group())
       })
       
-      output$combined_summary_table <- renderTable(combined_summary_table())
+      output$combined_summary_table <- renderTable({
+        combined_summary_table()
+        })
       regression_table  <- eventReactive(input$run_button, {
         create_regression_table(upload(), axis1(), axis2())
       })
-      output$regression_summary_table <- renderTable(regression_table())
+      output$regression_summary_table <- renderTable({
+        regression_table()
+        })
       output$interpretation <- renderUI({
         if(axis1() !=not_sel & axis2() !=not_sel){
           x <- upload()[,get(axis1())]
@@ -1851,7 +1828,7 @@ ui <-tabsetPanel(
       })
       
       verify<- modalDialog(
-        tagList('ARE YOU A DATABASE ADMINISTRATOR AT INFINICALS?'),
+        tags$h2('ARE YOU A DATABASE ADMINISTRATOR AT INFINICALS?'),
         title=tags$h3('DATA ADMINISTATOR'),
         footer=tagList(actionButton('accept','YES', class   = "btn-info"),
                        actionButton('decline','NO', class   = "btn-info")),
