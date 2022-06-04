@@ -294,7 +294,7 @@ body<- dashboardBody(
       );
     ')
   )),
-  useShinyFeedback(),
+  useShinyFeedback(), 
   useShinyjs(),
   tags$head(includeScript('returnClick.js')),customTheme,
   tags$head(tags$link(rel='stylesheet',type='text/css',
@@ -382,29 +382,132 @@ body<- dashboardBody(
                                         titlePanel('Type of Graph'),
                                         radioButtons(inputId='graph_type',
                                                      label='Choose the Graph',
-                                                     choices= c('Line','Bar','Comparative Bar','Pie'),
+                                                     choices= c('Line','Normal Bar','Comparative Bar','Cumulative Bar','Pie'),
                                                      inline = TRUE , 
                                                      selected=NULL),
+                                        conditionalPanel(
+                                          condition= "input.graph_type=='Pie'",
+                                        dateInput(inputId = 'date5',
+                                                  label = strong('Pie Date'),
+                                                  min=min(exports1$dates),
+                                                  max=max(exports1$dates),
+                                                  value ='2000-12-01'
+                                                  )
+                                        ),
                                         textOutput('text2'),
+                                        conditionalPanel(
+                                          condition ="input.graph_type!=
+                                          'Cumulative Bar'",
                                         withSpinner(
                                           echarts4rOutput('graph2'), 
                                           type=1,
                                           color="#b33e48",
                                           hide.ui=FALSE)
-                                      ),
-                                      tabPanel(title='More Visuals',
-                                               titlePanel('Combined Bar Graph'),
-                                               tags$div(id="test", style="width:100%;height:400px;"),
+                                        ),
+                                        conditionalPanel(
+                                          condition= "input.graph_type=='Pie'",
+                                          column(12,
+                                                 tags$div(id="test1", 
+                                                          style="width:100%;height:300px;"), 
+                                                 deliverChart(div_id = "test1")
+                                          )
+                                          ),
+                                        conditionalPanel(
+                                        condition= "input.graph_type=='Cumulative Bar'",
+                                       fluidRow(
+                                         column(12,
+                                               tags$div(id="test", 
+                                                        style="width:100%;height:400px;"),
                                                deliverChart(div_id = "test")
+                                        ))
                                       )
                                     )
                                   )
                                 )
                        )
+                     ),
+                     tabPanel(
+                       title='Visuals page',
+                       icon=icon('eye'),
+                       titlePanel('Different Graphs'),
+                       fluidRow(
+                         column(12,
+                       box(
+                         solidHeader = FALSE,
+                           title = "Control",
+                           status = "primary",
+                       pickerInput(
+                         inputId = 'select_crop1',
+                         label = strong('Select Crop'),
+                         multiple = TRUE,
+                         options=list(`max-options`=3),
+                         selected ='',                  
+                         choices =unique(exports1$crop)
+                       ),
+                       dateRangeInput(inputId = 'date21',
+                                      label = strong('Period'),
+                                      start= min(exports1$dates),
+                                      end=max(exports1$dates),
+                                      min=min(exports1$dates),
+                                      max=max(exports1$dates)
+                                      ),
+                       dateInput(inputId = 'date51',
+                                 label = strong(' % Pie Date'),
+                                 min=min(exports1$dates),
+                                 max=max(exports1$dates),
+                                 value ='2000-12-01'
+                                 )
+                       )
+                        )
+                       ),
+                       fluidRow(
+                         column(width = 6, 
+                                withSpinner(
+                                  echarts4rOutput('grapha'), 
+                                  type=1,
+                                  color="#b33e48",
+                                  hide.ui=FALSE)
+                         ),
+                         column(width = 6, 
+                                withSpinner(
+                                  echarts4rOutput('graphb'), 
+                                  type=1,
+                                  color="#b33e48",
+                                  hide.ui=FALSE)
+                         )              
+                         ),
+                       fluidRow(
+                         column(width = 6, 
+                                withSpinner(
+                                  echarts4rOutput('graphc'), 
+                                  type=1,
+                                  color="#b33e48",
+                                  hide.ui=FALSE)
+                         ),
+                         column(width = 6, 
+                                tags$div(id="test11", 
+                                         style="width:100%;height:300px;"),
+                                deliverChart(div_id = "test11")
+                                )
+                       ),
+                       fluidRow(
+                         column(width = 6, 
+                                withSpinner(
+                                  echarts4rOutput('graphd'), 
+                                  type=1,
+                                  color="#b33e48",
+                                  hide.ui=FALSE)
+                         ),
+                         column(width = 6, 
+                                tags$div(id="test12", 
+                                                    style="width:100%;height:400px;"),
+                                deliverChart(div_id = "test12"))
+                       )
+                     )
                      )
               )
-            )
-    ),
+              )
+            ),
     tabItem(tabName ='t_item22',
             fluidRow(
               column(12,
@@ -1241,10 +1344,43 @@ ui <-tabsetPanel(
         validate(need(!is.na(input$select_crop), "You have not selected any crop to view"))
         expos() %>% select(dates,crop,weight)%>% filter(expos()$crop%in% input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2]))
       })
+      
+      data <- reactive({
+        validate(need(!is.na(input$select_crop), "You have not selected any crop to view"))
+        validate(need(!is.na(input$date5), "Pie Date required*"))
+          total <- expos()%>% filter(expos()$crop%in%input$select_crop,expos()$dates%in%input$date5) %>% select(weight)%>% sum()
+          weight1<- expos()%>%filter(expos()$crop%in%input$select_crop[1],expos()$dates%in%input$date5)%>%select(weight)%>%sum()
+          weight2<- expos()%>%filter(expos()$crop%in%input$select_crop[2],expos()$dates%in%input$date5)%>%select(weight)%>%sum()
+          weight3<-expos()%>%filter(expos()$crop%in%input$select_crop[3],expos()$dates%in%input$date5)%>%select(weight)%>%sum()
+          percent1 <- round((weight1/total)*100,0)
+          percent2 <-round((weight2/total)*100,0)
+          percent3 <-round((weight3/total)*100,0)
+          data.frame(dates=c(input$date5,input$date5,input$date5),
+                     crop= c(input$select_crop[1],input$select_crop[2],input$select_crop[3]),
+                     weight= c(percent1,percent2,percent3) )
+         
+      }) 
+      datay <- reactive({
+        validate(need(!is.na(input$select_crop1), "You have not selected any crop to view"))
+        validate(need(!is.na(input$date51), "Pie Date required*"))
+        total <- expos()%>% filter(expos()$crop%in%input$select_crop1,expos()$dates%in%input$date51) %>% select(weight)%>% sum()
+        weight1<- expos()%>%filter(expos()$crop%in%input$select_crop1[1],expos()$dates%in%input$date51)%>%select(weight)%>%sum()
+        weight2<- expos()%>%filter(expos()$crop%in%input$select_crop1[2],expos()$dates%in%input$date51)%>%select(weight)%>%sum()
+        weight3<-expos()%>%filter(expos()$crop%in%input$select_crop1[3],expos()$dates%in%input$date51)%>%select(weight)%>%sum()
+        percent1 <- round((weight1/total)*100,0)
+        percent2 <-round((weight2/total)*100,0)
+        percent3 <-round((weight3/total)*100,0)
+        data.frame(dates=c(input$date51,input$date51,input$date51),
+                   crop= c(input$select_crop1[1],input$select_crop1[2],input$select_crop1[3]),
+                   weight= c(percent1,percent2,percent3) )
+        
+      }) 
       style <- reactive({
         input$graph_type
       })
-      my_colors<-c("#b33e48", "#08ffc0", "#4c5138 ")
+      
+      my_colors<-c("#b33e48", "#08b582", "#4c5138 ")
+      
       plottype <- reactive({
         switch(style(),
                "Line" = datae3()|> 
@@ -1259,7 +1395,7 @@ ui <-tabsetPanel(
                  e_toolbox_feature(feature = "saveAsImage")|>
                  e_legend(orient = 'vertical',right = '5', top = '15%')|>
                  e_color(my_colors),
-               'Bar'= datae3()|> 
+               'Normal Bar'= datae3()|> 
                  group_by(crop)|>
                  e_charts(dates,timeline=TRUE)|>
                  e_bar(weight)|>
@@ -1286,29 +1422,120 @@ ui <-tabsetPanel(
                  e_legend(orient = 'vertical', 
                           right = '5', top = '15%')|>
                  e_color(my_colors),
-               'Pie'= datae3()|>
-                 group_by(dates)|>
-                 e_charts(crop)|>
-                 e_pie(weight)|>
-                 e_animation(duration = 4000)|>
-                 e_title(paste('A',input$graph_type,'Graph of',input$select_crop[1],',',input$select_crop[2],'and',input$select_crop[3]),
-                         left='center',top=10)|>
-                 e_toolbox_feature(feature = "saveAsImage")|>
-                 e_legend(orient = 'vertical', 
-                          right = '5', top = '15%')|>
-                 e_color(my_colors)|>
-                 e_tooltip()
+               'Pie'=  data() |>
+                       group_by(dates)|>
+                       e_charts(crop)|>
+                       e_pie(weight)|>
+                       e_tooltip() |>
+                       e_animation(duration = 4000)|>
+                 e_title(paste('A pie Graph % weight of',
+                               input$select_crop[1],',',input$select_crop[2],
+                               'and',input$select_crop[3],'on',input$date5)) |>
+                       e_toolbox_feature(feature = "saveAsImage")|>
+                       e_legend(orient = 'vertical', 
+                                right = '5', top = '15%')|>
+                       e_color(my_colors)
         )
       })
-      datam  <- exports %>% select(dates,avocado,tea,coffee)%>% 
-          data.frame(row.names = 1)%>% head()
-      renderBarChart(div_id = "test", 
-                     grid_left = '1%', 
-                     direction = "vertical",
-                     data=datam
-                     )
+      datam  <- reactive({
+        req(input$date2)
+        validate(need(!is.na(input$select_crop),
+                             "You have not selected any crop"))
+        exports %>% 
+          select(dates,input$select_crop)%>% 
+          filter(dates > as.POSIXct(input$date2[1]) &
+                   dates < as.POSIXct(input$date2[2])) %>%
+          data.frame(row.names = 1)
+      })
+      datam1  <- reactive({
+        req(input$date21)
+        validate(need(!is.na(input$select_crop1),
+                      "You have not selected any crop"))
+        exports %>% 
+          select(dates,input$select_crop1)%>% 
+          filter(dates > as.POSIXct(input$date21[1]) &
+                   dates < as.POSIXct(input$date21[2])) %>%
+          data.frame(row.names = 1)
+      })
+      
+      observe({
+        if(input$graph_type=='Cumulative Bar'){
+        req(input$date2)
+        validate(need(!is.na(input$select_crop),
+                      "You have not selected any crop to view"))
+        renderBarChart(div_id = "test", 
+                       grid_left = '10%', 
+                       data=datam()
+        )
+        } else {
+          plottype()
+        }
+      })
+      observe({
+          req(input$date21)
+          validate(need(!is.na(input$select_crop1),
+                        "You have not selected any crop to view"))
+          renderBarChart(div_id = "test11", 
+                         grid_left = '10%', theme ='dark-digerati',
+                         data=datam1()
+          )
+      })
       output$graph2<-renderEcharts4r({
         plottype() 
+      })
+      datas <- reactive({
+        validate(need(!is.na(input$select_crop), 
+                      "You have not selected any crop to view"))
+        validate(need(!is.na(input$select_crop[1]), "You have not selected any Column"))
+        validate(need(!is.na(input$select_crop[2]), "You have not selected any Column"))
+        validate(need(!is.na(input$select_crop[3]), "You have not selected any Column"))
+        validate(need(!is.na(input$date2), "Pie Date required*"))
+        total <- exports1%>% filter(exports1$crop%in%input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
+        weight1 <- exports1%>% filter(exports1$crop%in%input$select_crop[1],dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
+        weight2<- exports1%>% filter(exports1$crop%in%input$select_crop[2],dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
+        weight3<-exports1%>% filter(exports1$crop%in%input$select_crop[3],dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
+        values <- c(
+          rep(input$select_crop[1],weight1),
+          rep(input$select_crop[2],weight2),
+          rep(input$select_crop[3],weight3)
+        )
+      })
+      dataw <- reactive({
+        validate(need(!is.na(input$select_crop1), 
+                      "You have not selected any crop to view"))
+        validate(need(!is.na(input$select_crop1[1]), "You have not selected any Column"))
+        validate(need(!is.na(input$select_crop1[2]), "You have not selected any Column"))
+        validate(need(!is.na(input$select_crop1[3]), "You have not selected any Column"))
+        validate(need(!is.na(input$date21), "Pie Date required*"))
+        total <- exports1%>% filter(exports1$crop%in%input$select_crop1,dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
+        weight1 <- exports1%>% filter(exports1$crop%in%input$select_crop1[1],dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
+        weight2<- exports1%>% filter(exports1$crop%in%input$select_crop1[2],dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
+        weight3<-exports1%>% filter(exports1$crop%in%input$select_crop1[3],dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
+        values <- c(
+          rep(input$select_crop1[1],weight1),
+          rep(input$select_crop1[2],weight2),
+          rep(input$select_crop1[3],weight3)
+        )
+      })
+      observe({
+        req(input$date2[1])
+        req(input$date2[2])
+        req(input$select_crop[1])
+        req(input$select_crop[2])
+        req(input$select_crop[3])
+        renderPieChart(div_id = "test1",
+                       data = datas(),
+                       radius = "70%",center_x = "50%", center_y = "50%")
+      })
+      observe({
+        req(input$date21[1])
+        req(input$date21[2])
+        req(input$select_crop1[1])
+        req(input$select_crop1[2])
+        req(input$select_crop1[3])
+        renderPieChart(div_id = "test12",
+                       data = dataw(),theme ='dark-digerati',
+                       radius = "70%",center_x = "50%", center_y = "50%")
       })
       datae <-reactive({
         req(input$date)
@@ -1357,6 +1584,71 @@ ui <-tabsetPanel(
                      right = '5', top = '15%')
         }
       })
+            dataz<-reactive({
+              validate(need(!is.na(input$select_crop1), "You have not selected any crop to view"))
+              expos() %>% select(dates,crop,weight)%>% filter(expos()$crop%in% input$select_crop1,dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2]))
+            })
+            output$grapha <- renderEcharts4r({
+              dataz()|> 
+                group_by(crop)|>
+                e_charts(dates)|>
+                e_line(weight,symbol='none')|> 
+                e_animation(duration = 4000)|>
+                e_tooltip(trigger='axis')|>
+                e_axis_labels(x='Dates',y = 'Weight Exported in Kgs.')|> 
+                e_title(paste('A Line','Graph of',input$select_crop1[1],',',input$select_crop1[2],'and',input$select_crop1[3]),
+                        left='center',top=10)|>
+                e_toolbox_feature(feature = "saveAsImage")|>
+                e_legend(orient = 'vertical',right = '5', top = '15%')|>
+                e_color(my_colors)|> e_theme("dark-mushroom")
+            })
+            output$graphb <- renderEcharts4r({
+              dataz()|> 
+                group_by(crop)|>
+                e_charts(dates,timeline=TRUE)|>
+                e_bar(weight)|>
+                e_animation(duration = 4000)|>
+                e_timeline_opts(autoPlay = TRUE, top = "55")|>
+                e_tooltip(trigger='axis')|>
+                e_axis_labels(x='Dates',y = 'Weight Exported in Kgs.')|> 
+                e_title(paste('A Bar Graph of',input$select_crop1[1],',',input$select_crop1[2],'and',input$select_crop1[3]),
+                        left='center',top=10)|>
+                e_toolbox_feature(feature = "saveAsImage")|>
+                e_legend(orient = 'vertical', 
+                         right = '5', top = '15%')|>
+                e_color(my_colors)|> e_theme("dark-mushroom")
+            })
+            output$graphc <- renderEcharts4r({
+              dataz()|> 
+                group_by(crop)|>
+                e_charts(dates)|>
+                e_bar(weight)|>
+                e_animation(duration = 4000)|>
+                e_tooltip(trigger='axis')|>
+                e_axis_labels(x='Dates',y = 'Weight Exported in Kgs.')|> 
+                e_title(paste('A Comparative Bar Graph of',input$select_crop1[1],',',input$select_crop1[2],'and',input$select_crop1[3]),
+                        left='center',top=10)|>
+                e_toolbox_feature(feature = "saveAsImage")|>
+                e_legend(orient = 'vertical', 
+                         right = '5', top = '15%')|>
+                e_color(my_colors)|> e_theme("dark-mushroom")
+            })
+            output$graphd <- renderEcharts4r({
+              datay() |>
+                group_by(dates)|>
+                e_charts(crop)|>
+                e_pie(weight)|>
+                e_tooltip() |>
+                e_animation(duration = 4000)|>
+                e_title(paste('A Pie Graph % weight on',
+                              input$date51)) |>
+                e_toolbox_feature(feature = "saveAsImage")|>
+                e_legend(orient = 'vertical', 
+                         right = '5', top = '15%')|>
+                e_color(my_colors)|> e_theme("dark-mushroom")
+            })
+              
+              
       doc<- data.frame(val = c(0.9, 0.5, 0.4))
       output$liquid<- renderEcharts4r({
         doc|>
