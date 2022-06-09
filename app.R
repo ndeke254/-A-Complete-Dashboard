@@ -218,6 +218,10 @@ header <- dashboardHeader(dropdownMenuOutput('menu1'),
 
 sidebar <-dashboardSidebar(
   tags$h2(
+    sidebarUserPanel(name = "Jefferson M. Ndeke",
+                     subtitle = "Statistician/Data Analyst",
+                     image ='user_image.png'
+  ),
     sidebarMenu(
       menuItem('Dashboard',
              tabName='t_item1',
@@ -843,11 +847,89 @@ body<- dashboardBody(
     tabItem(tabName='t_item5',
             fluidRow(
               column(12
+                     )
+          
+               )
+            ), 
+    tabItem(tabName='t_item6',
+            titlePanel(tags$h3('ABOUT AUTHOR')),
+            fluidRow(
+                         column(12, br(),
+                                img(src ="user_image.png", 
+                                    width = "17%", 
+                                    style = "display: block; margin-left: auto; margin-right: auto;")
+                         ),
+                         fluidRow(
+                           tags$h2("JEFFERSON NDEKE", 
+                           style = "text-align: center"),
+                          tags$h5("musumbijefferson@gmail.com", 
+                                  style = "text-align: center")
+                         ),
+                         hr(),
+                         fluidRow(column(5, ""),
+                                  column(
+                                    3,
+                                    tags$h3(
+                                      HTML('&nbsp;'),
+                                      HTML('&nbsp;'),
+                                      HTML('&nbsp;'),
+                                      tags$a(
+                                        href = 'https://www.linkedin.com/in/jefferson-ndeke-027062202/',
+                                        img(
+                                          src = 'LinkedIn.png',
+                                          height = "50px"
+                                        )
+                                      ),
+                                      HTML('&nbsp;'),
+                                      tags$a(
+                                        href = 'https://twitter.com/jefferson_ndeke',
+                                        img(
+                                          src = 'twitter.png',
+                                          height = "50px"
+                                        )
+                                      ),
+                                      HTML('&nbsp;'),
+                                      tags$a(href = 'https://github.com/ndeke254', img(
+                                        src = 'github.jpg',
+                                        height = "50px"
+                                      ))
+                                      )
+                                  )),
+                         fluidRow(
+                           column(2, ""),
+                           column(
+                             1,
+                             h3(icon("briefcase"), style = "text-align: right; line-height: 165%;"),
+                             br(),
+                             br(),
+                             h3(icon("globe"), style = "text-align: right; line-height: 200%"),
+                             br(),
+                             h3(icon("heart"), style = "text-align: right; line-height: 170%;")
+                           ),
+                           column(
+                             6,
+                             h4(
+                               "Currently a finalist college student at the University of Nairobi pursuing a Bachelors degree in Economics and Statistics. Open to any remote/online job or assignment.",
+              style = "text-align: left; line-height: 150%;"
+                             ),
+              br(),
+              h4(
+                "Data communicates correctly when handled the right way; From collection to presentation.
+              Coupling with academic training, data science remains a powerful tool for me in the current dynamic world to analyse and predict trends.
+              ",
+              style = "text-align: left; line-height: 150%;"
+              ),
+              br(),
+              h4(
+                "Passionate about public speaking and presentations. A believer of an opportunity to prove. A lover of God and humanity. Travelling. Hiking. Reading philosophical publications. ",
+                style = "text-align: left; line-height: 150%;"
+                )
+              )
+              )
               )
             )
     )
   )
-)
 ui <-tabsetPanel(
   id = "panels",
   type = "hidden",
@@ -1268,7 +1350,16 @@ ui <-tabsetPanel(
         dashboardUser(
           name=input$userName,
           image='user_image.png',
-          footer=p('Beyond Infinity',class='text-centre'),
+          footer=p('Beyond Infinity',class='text-centre',
+                tags$li(actionLink("LinkedIn", 
+                                   label = "", 
+                                   icon = icon("linkedin"),   
+                                   onclick = "window.open('https://www.linkedin.com/in/jefferson-ndeke-027062202/')"),                                                             class = "dropdown"),
+                tags$li(actionLink("GitHub", 
+                                   label = "", 
+                                   icon = icon("github"),
+                                   onclick = "window.open('https://github.com/ndeke254')"),
+                        class = "dropdown")),
           subtitle = a(icon("user"),"LOG OUT", href = login.page)
         )
       })
