@@ -3,6 +3,7 @@ library(waiter)
 library(shiny)
 library(plotly)
 library(ggplot2)
+library(shinyvalidate)
 library(data.table)
 library(purrr)
 library(shinyjqui)
@@ -12,10 +13,10 @@ library(readr)
 library(readxl)
 library(shiny)
 library(shinycssloaders)
-library(shinydashboard)
 library(dashboardthemes)
 library(bslib)
 library(tidyverse)
+library(shinydashboard)
 library(shinydashboardPlus)
 library(shinyWidgets)
 library(shinyFeedback)
@@ -202,17 +203,17 @@ customTheme <- shinyDashboardThemeDIY(
   ,tableBackColor = "rgb(240, 255, 255)"
   ,tableBorderColor =""
   ,tableBorderTopSize = 1
-  ,tableBorderRowSize = 1
+  ,tableBorderRowSize = 1  
 )
 header <- dashboardHeader(dropdownMenuOutput('menu1'),
                           dropdownMenuOutput('menu2'),
                           dropdownMenuOutput('menu3'),
                           userOutput('user'),
-                          title = tags$a(tags$img(src='logo.png'),
+                          title = tags$a(tags$img(src='logo.png',width='20%'),
                                          href='','INFINICALS',
                                          style = "color:yellow; 
                                         font-family:Candara;
-                                        font-size:28px;
+                                        font-size:24px;
                                         font-weight: bold;")
                           )
 
@@ -289,6 +290,7 @@ sidebar <-dashboardSidebar(
   )
 
 body<- dashboardBody(
+  tags$script(HTML("$('body').addClass('fixed');")),
   tags$head(tags$script(HTML('
       Shiny.addCustomMessageHandler("jsCode",
         function(message) {
@@ -298,7 +300,7 @@ body<- dashboardBody(
       );
     ')
   )),
-  useShinyFeedback(), 
+  useShinyFeedback(),
   useShinyjs(),
   tags$head(includeScript('returnClick.js')),customTheme,
   tags$head(tags$link(rel='stylesheet',type='text/css',
@@ -307,10 +309,31 @@ body<- dashboardBody(
   tabItems(
     tabItem(tabName = 't_item1',
             fluidRow(
-              column(12,
-                     titlePanel(tags$h3('DATA FOR A SINGLE CROP BASED ON TYPE'))
-              )
-            )
+              titlePanel(tags$h3('INFO')),
+                    box(tags$a(
+                      tags$img(src='logo.png',width="50%")
+                    ),
+                    width=4, solidHeader=TRUE,
+                    title=tags$h2('OUR MOTTO'),
+                    footer=tags$h4('Beyond Infinity'),
+                    background='aqua',
+                    status='primary'
+                    ),
+                    infoBox('DAY OF THE WEEK',
+                            weekdays(Sys.Date())%>% toupper()),
+                            br(),
+                    valueBox(format(Sys.Date(), format = "%d"),subtitle='DATE'),br(),
+                    infoBox('MONTH',
+                            months(Sys.Date())%>%toupper()),
+                    br(),
+                    valueBox(format(Sys.Date(), format = "20%y"),subtitle='YEAR'),
+            box(width=4, solidHeader=TRUE,
+                footer=tags$h4(textOutput("state")),
+                background='aqua',
+                status='primary',textOutput('quote'),
+                title=tags$h2('QUOTE OF THE DAY'))
+                  )            
+              
     ),
     tabItem(tabName = "t_item21",
             fluidRow(
@@ -716,12 +739,12 @@ body<- dashboardBody(
                                   sidebarPanel(
                                     fileInput('file1','Data',buttonLabel='Upload...',accept=c('.cvs','.tsv','.xls','.xlsx')
                                     ),
-                                    numericInput('n','No. of Rows to preview',value=10,min=1,step=1),
+                                    numericInput('n','No. of Rows to preview',value=10,min=1,max=10,step=1),
                                     radioButtons("disp", "Display",
                                                  choices = c(Head = "head",
                                                              All = "all"),
                                                  selected = "head"),
-                                    actionButton("preview", "Preview")
+                                  actionButton("preview", "Preview")
                                   ),
                                   mainPanel(
                                     tags$head(
@@ -908,19 +931,19 @@ body<- dashboardBody(
                            ),
                            column(
                              6,
-                             h4(
+                             h6(
                                "Currently a finalist college student at the University of Nairobi pursuing a Bachelors degree in Economics and Statistics. Open to any remote/online job or assignment.",
               style = "text-align: left; line-height: 150%;"
                              ),
               br(),
-              h4(
+              h6(
                 "Data communicates correctly when handled the right way; From collection to presentation.
               Coupling with academic training, data science remains a powerful tool for me in the current dynamic world to analyse and predict trends.
               ",
               style = "text-align: left; line-height: 150%;"
               ),
               br(),
-              h4(
+              h6(
                 "Passionate about public speaking and presentations. A believer of an opportunity to prove. A lover of God and humanity. Travelling. Hiking. Reading philosophical publications. ",
                 style = "text-align: left; line-height: 150%;"
                 )
@@ -942,14 +965,13 @@ ui <-tabsetPanel(
                    tags$div(
                          class = "landing_page_logo",
                          tags$a(
-                           tags$img(src='logo.png')
+                           tags$img(src='logo.png',width="50%")
                          ),
                          style= "float:left;"
                        ),
                        tags$div(
                          class = "select_something", 
-                         actionLink('portal',
-                                    'USER PORTAL',
+                         actionLink('portal','USER PORTAL',
                                     icon = icon("users")
                          )
                        )
@@ -1025,7 +1047,7 @@ ui <-tabsetPanel(
   tabPanelBody(
         value = "dashboard",
         tags$div(id = "div_dashboard",
-                 dashboardPage(
+                 dashboardPage(         
                    header = header, 
                    sidebar = sidebar, 
                    body = body,
@@ -1169,7 +1191,37 @@ ui <-tabsetPanel(
       dplyr::bind_cols(tibble("Buttons" = y))
     
     server <- function(input, output, session) {
+      iv <- InputValidator$new()
+      iv$add_rule("dates", sv_required())
+      iv$add_rule("datex", sv_required())
+      iv$add_rule("weight", sv_required())
+      iv$add_rule("value", sv_required())
+      iv$add_rule("n", sv_required())
       
+      iv$enable()
+    
+output$state<- renderText({
+  time <- substr(Sys.time(),12,16)
+  if(time >"00:01" & time < "12:00"){
+    salutation <- 'Good Morning'} else if(time >"12:00" & time <"16:00"){
+      salutation <- 'Good Afternoon'} else if (time >"16:00" & time<"24:59"){ salutation <-"Good Evening"}else {
+        salutation <-NULL}
+  salutation1 <-  paste(salutation,input$userName,sep=" ")
+  salutation1
+})
+      
+      output$quote<- renderText({
+    a <- 'This is a new dawn for a new season. Wake up and work.'
+    b<- 'Walk with confidence for you alone understand yourself.'
+    c<-'Prove yourself right that you can win indeed.'
+    d <-"We live in a world where goodness isn't often celebrated. Don't mind it."
+    e <- 'Poverty is the worst kind of slavery. Resist it.'
+    f<-"If you have to fail, do so with decorum."
+    group <- c(a,b,c,d,e,f)
+   quote<- sample(group,1)
+   quote
+   
+      })
       debt <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/kenya_status1.xlsx',readFunc = function(filePath){ 
         openxlsx::read.xlsx(filePath,detectDates = TRUE)
       })
@@ -1370,8 +1422,8 @@ ui <-tabsetPanel(
       })
     
       shiny::observeEvent(input$choose_category, {
-        x<- c(not_sel,unique(exports1 [
-          exports1$type%in%input$choose_category,"crop"])
+        x<- c(not_sel,unique(expos() [
+          expos()$type%in%input$choose_category,"crop"])
           )
         shiny::updateSelectInput(session,
                                  'choose_item',
@@ -1532,7 +1584,7 @@ ui <-tabsetPanel(
         req(input$date2)
         validate(need(!is.na(input$select_crop),
                              "You have not selected any crop"))
-        exports %>% 
+        expot() %>% 
           select(dates,input$select_crop)%>% 
           filter(dates > as.POSIXct(input$date2[1]) &
                    dates < as.POSIXct(input$date2[2])) %>%
@@ -1542,7 +1594,7 @@ ui <-tabsetPanel(
         req(input$date21)
         validate(need(!is.na(input$select_crop1),
                       "You have not selected any crop"))
-        exports %>% 
+        expot() %>% 
           select(dates,input$select_crop1)%>% 
           filter(dates > as.POSIXct(input$date21[1]) &
                    dates < as.POSIXct(input$date21[2])) %>%
@@ -1554,8 +1606,9 @@ ui <-tabsetPanel(
         req(input$date2)
         validate(need(!is.na(input$select_crop),
                       "You have not selected any crop to view"))
-        renderBarChart(div_id = "test", 
-                       grid_left = '10%', 
+        renderBarChart(div_id = "test", stack_plot=TRUE,
+                       axis.x.name="Dates", 
+                       axis.y.name="Weight exported in kgs",
                        data=datam()
         )
         } else {
@@ -1566,8 +1619,9 @@ ui <-tabsetPanel(
           req(input$date21)
           validate(need(!is.na(input$select_crop1),
                         "You have not selected any crop to view"))
-          renderBarChart(div_id = "test11", 
-                         grid_left = '10%', theme ='dark-digerati',
+          renderBarChart(div_id = "test11",stack_plot=TRUE,
+                         axis.x.name="Dates", 
+                         axis.y.name="Weight exported in kgs",
                          data=datam1()
           )
       })
@@ -1581,10 +1635,10 @@ ui <-tabsetPanel(
         validate(need(!is.na(input$select_crop[2]), "You have not selected any Column"))
         validate(need(!is.na(input$select_crop[3]), "You have not selected any Column"))
         validate(need(!is.na(input$date2), "Pie Date required*"))
-        total <- exports1%>% filter(exports1$crop%in%input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
-        weight1 <- exports1%>% filter(exports1$crop%in%input$select_crop[1],dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
-        weight2<- exports1%>% filter(exports1$crop%in%input$select_crop[2],dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
-        weight3<-exports1%>% filter(exports1$crop%in%input$select_crop[3],dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
+        total <- expos()%>% filter(expos()$crop%in%input$select_crop,dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
+        weight1 <- expos()%>% filter(expos()$crop%in%input$select_crop[1],dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
+        weight2<- expos()%>% filter(expos()$crop%in%input$select_crop[2],dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
+        weight3<-expos()%>% filter(expos()$crop%in%input$select_crop[3],dates > as.POSIXct(input$date2[1]) & dates < as.POSIXct(input$date2[2])) %>% select(weight)%>%sum()
         values <- c(
           rep(input$select_crop[1],weight1),
           rep(input$select_crop[2],weight2),
@@ -1598,10 +1652,10 @@ ui <-tabsetPanel(
         validate(need(!is.na(input$select_crop1[2]), "You have not selected any Column"))
         validate(need(!is.na(input$select_crop1[3]), "You have not selected any Column"))
         validate(need(!is.na(input$date21), "Pie Date required*"))
-        total <- exports1%>% filter(exports1$crop%in%input$select_crop1,dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
-        weight1 <- exports1%>% filter(exports1$crop%in%input$select_crop1[1],dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
-        weight2<- exports1%>% filter(exports1$crop%in%input$select_crop1[2],dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
-        weight3<-exports1%>% filter(exports1$crop%in%input$select_crop1[3],dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
+        total <- expos()%>% filter(expos()$crop%in%input$select_crop1,dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
+        weight1 <- expos()%>% filter(expos()$crop%in%input$select_crop1[1],dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
+        weight2<- expos()%>% filter(expos()$crop%in%input$select_crop1[2],dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
+        weight3<-expos()%>% filter(expos()$crop%in%input$select_crop1[3],dates > as.POSIXct(input$date21[1]) & dates < as.POSIXct(input$date21[2])) %>% select(weight)%>%sum()
         values <- c(
           rep(input$select_crop1[1],weight1),
           rep(input$select_crop1[2],weight2),
@@ -1616,7 +1670,8 @@ ui <-tabsetPanel(
         req(input$select_crop[3])
         renderPieChart(div_id = "test1",
                        data = datas(),
-                       radius = "70%",center_x = "50%", center_y = "50%")
+                       radius = "70%",center_x = "50%",
+                       center_y = "50%")
       })
       observe({
         req(input$date21[1])
@@ -1625,7 +1680,7 @@ ui <-tabsetPanel(
         req(input$select_crop1[2])
         req(input$select_crop1[3])
         renderPieChart(div_id = "test12",
-                       data = dataw(),theme ='dark-digerati',
+                       data = dataw(),
                        radius = "70%",center_x = "50%", center_y = "50%")
       })
       datae <-reactive({
@@ -1691,7 +1746,7 @@ ui <-tabsetPanel(
                         left='center',top=10)|>
                 e_toolbox_feature(feature = "saveAsImage")|>
                 e_legend(orient = 'vertical',right = '5', top = '15%')|>
-                e_color(my_colors)|> e_theme("dark-mushroom")
+                e_color(my_colors)
             })
             output$graphb <- renderEcharts4r({
               dataz()|> 
@@ -1707,7 +1762,7 @@ ui <-tabsetPanel(
                 e_toolbox_feature(feature = "saveAsImage")|>
                 e_legend(orient = 'vertical', 
                          right = '5', top = '15%')|>
-                e_color(my_colors)|> e_theme("dark-mushroom")
+                e_color(my_colors) 
             })
             output$graphc <- renderEcharts4r({
               dataz()|> 
@@ -1722,7 +1777,7 @@ ui <-tabsetPanel(
                 e_toolbox_feature(feature = "saveAsImage")|>
                 e_legend(orient = 'vertical', 
                          right = '5', top = '15%')|>
-                e_color(my_colors)|> e_theme("dark-mushroom")
+                e_color(my_colors)
             })
             output$graphd <- renderEcharts4r({
               datay() |>
@@ -1736,7 +1791,7 @@ ui <-tabsetPanel(
                 e_toolbox_feature(feature = "saveAsImage")|>
                 e_legend(orient = 'vertical', 
                          right = '5', top = '15%')|>
-                e_color(my_colors)|> e_theme("dark-mushroom")
+                e_color(my_colors)
             })
               
               
@@ -1984,7 +2039,7 @@ ui <-tabsetPanel(
         }
       })
       shiny::observe({
-        x<- unique(exports1[exports1$type%in%input$type,"crop"])
+        x<- unique(expos()[expos()$type%in%input$type,"crop"])
         shiny::updateSelectInput(session,
                                  'crop',
                                  label=paste('Select',input$type,sep = ' '),
@@ -2062,6 +2117,7 @@ ui <-tabsetPanel(
       shiny::observeEvent(input$final_edit, {
         req(input$weight)
         req(input$dates)
+        req(input$weight!=0)
         shiny::req(!is.null(input$current_id) & stringr::str_detect(input$current_id, pattern = "edit") & is.null(rv$add_or_edit))
         rv$edited_row <- dplyr::tibble(
           dates= input$dates,
@@ -2074,9 +2130,9 @@ ui <-tabsetPanel(
         
       })
       shiny::observeEvent(input$final_edit,{
-        shinyFeedback::feedbackWarning('weight',is.na(input$weight),"*Required")
         req(input$weight)
         req(input$dates)
+        req(input$weight!=0)
         shiny::req(rv$add_or_edit == 1)
         add_row <- dplyr::tibble(
           dates= input$dates,
@@ -2102,12 +2158,14 @@ ui <-tabsetPanel(
       shiny::observeEvent(input$final_edit, {
         req(input$crop)
         req(input$weight)
+        req(input$weight!=0)
         req(input$dates)
         shiny::removeModal()
       })
       
       shiny::observeEvent(input$final_edit1, {
         req(input$value)
+        req(input$value!=0)
         req(input$datex)
         req(input$indicators)
         shiny::req(!is.null(input$current_id) & stringr::str_detect(input$current_id, pattern = "edit") & is.null(rv1$add_or_edit))
@@ -2120,7 +2178,7 @@ ui <-tabsetPanel(
         rv1$df[rv1$dt_row, ] <- rv1$edited_row
       })
       shiny::observeEvent(input$final_edit1,{
-        shinyFeedback::feedbackWarning('value',is.na(input$value),"*Required")
+        req(input$value!=0)
         req(input$value)
         req(input$datex)
         shiny::req(rv1$add_or_edit == 1)
@@ -2146,6 +2204,7 @@ ui <-tabsetPanel(
       })
       shiny::observeEvent(input$final_edit1, {
         req(input$value)
+        req(input$value!=0)
         req(input$datex)
         req(input$indicators)
         shiny::removeModal()
@@ -2232,15 +2291,16 @@ ui <-tabsetPanel(
         shiny::removeModal()
       })
       observeEvent(input$accept,{
-        shinyalert::shinyalert(title='INFINICALS PASSCODE',
-                               html = TRUE,
+        shinyalert::shinyalert(html= TRUE, 
+                               title='INFINICALS PASSCODE',
                                showConfirmButton = FALSE,
                                animation = "pop",
                                imageUrl= 'logo.png',
-                               text = tagList(
-                                 passwordInput('passcode','Passcode:',
-                                               placeholder='Enter official passcode'),
-                                 actionButton('ok','OK')
+                               imageWidth = "50%",
+                               text = tagList(tags$div(
+                                 passwordInput('passcode'
+                                               ,'Passcode:',
+                                               placeholder='Enter official passcode'),actionButton('ok','OK'))
                                ))
       })
       observeEvent(input$ok,{
