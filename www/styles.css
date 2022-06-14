@@ -11,11 +11,17 @@ h3{
   font-size:24px;    
   font-weight: bold;
 }
-h4,
+h4{
+  font-size:13px;    
+  font-weight: bold;
+}
 h5{
   font-weight: italic;
 }
-h6,
+h6{
+    font-size:17px;
+
+}
 
 p{
   font-size:20px;
@@ -41,6 +47,8 @@ body {
     max-height: 100px;
     padding: 10px;
     border: yellow  2px;
+        align-content: center;
+
 }
 
 .landing_page_content {
@@ -58,12 +66,13 @@ body {
 }
 
 .select_something {
-    width: 50%;
-    font-size: 28;
+    font-size: 15;
 }
 
 .text_content {
     text-align: center;
+        padding: 10px;
+
 }
 
 .company_details {
@@ -92,11 +101,6 @@ body {
     display: grid;
 
 }
-
-.pull-right-container {
-  background-color: #fedfa2;
-}
-
 .page_1 {
       background-color: black;
 

@@ -6,9 +6,9 @@ modal_dialog1 <- function(datex,indicators,value,edit) {
     x <- "Save New Record"
   }
   if(edit) {
-    y<- 'Edit Debt Records'
+    y<- tags$h2('Edit Debt Records')
   } else {
-    y<-'Add New Debt Record'
+    y<-tags$h2('Add New Debt Record')
   }
   shiny::modalDialog(
     title = y,
@@ -16,6 +16,7 @@ modal_dialog1 <- function(datex,indicators,value,edit) {
       class = "text-center",
       div(
         style = "display: inline-block;",
+        tags$style(type = "text/css", ".datepicker { z-index: 99999 !important; }"),
         shiny::dateInput (inputId = "datex",
                           label = "Date",
                           value = NULL, 

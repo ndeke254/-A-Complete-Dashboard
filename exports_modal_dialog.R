@@ -4,12 +4,12 @@ modal_dialog <- function(dates,type,crop, weight,edit) {
   if(edit) {
     x <- "Submit Edits"
   } else {
-    x <- "Save New Export"
+    x <-"Save New Export"
   }
   if(edit) {
-    y<- 'Edit Export'
+    y<- tags$h2('Edit Export')
   } else {
-    y<-'Add new Export'
+    y<- tags$h2('Add new Export')
   }
   shiny::modalDialog(
     title = y,
@@ -17,6 +17,7 @@ modal_dialog <- function(dates,type,crop, weight,edit) {
       class = "text-center",
       div(
         style = "display: inline-block;",
+        tags$style(type = "text/css", ".datepicker { z-index: 99999 !important; }"),
         shiny::dateInput (inputId = "dates",
                           label = "Date",
                           value = NULL, 
