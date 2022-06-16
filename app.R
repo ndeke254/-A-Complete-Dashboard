@@ -1403,15 +1403,20 @@ output$state<- renderText({
           name=input$userName,
           image='user_image.png',
           footer=p('Beyond Infinity',class='text-centre',
-                tags$li(actionLink("LinkedIn", 
-                                   label = "", 
-                                   icon = icon("linkedin"),   
-                                   onclick = "window.open('https://www.linkedin.com/in/jefferson-ndeke-027062202/')"),                                                             class = "dropdown"),
-                tags$li(actionLink("GitHub", 
-                                   label = "", 
-                                   icon = icon("github"),
-                                   onclick = "window.open('https://github.com/ndeke254')"),
-                        class = "dropdown")),
+                   tags$div(style="display: flex; border: ridge;background-color: #ccffff;",
+                            tags$li(
+                              actionLink("LinkedIn",                                              label = "",                                                   icon = icon("linkedin"),                                      onclick = "window.open('https://www.linkedin.com/in/jefferson-ndeke-027062202/')")),
+                            tags$li(
+                              actionLink("GitHub",
+                                         label = "", 
+                                         icon = icon("github"),
+                                         onclick = "window.open('https://github.com/ndeke254')")),
+                            tags$li(
+                              actionLink("Twitter", 
+                                         label = "", 
+                                         icon = icon("twitter"),
+                                         onclick = "window.open('https://twitter.com/jefferson_ndeke')")))
+          ),
           subtitle = a(icon("user"),"LOG OUT", href = login.page)
         )
       })
