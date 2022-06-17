@@ -1714,7 +1714,7 @@ output$state<- renderText({
             e_line(value,symbol='none')|> 
             e_animation(duration = 4000)|>
             e_tooltip(trigger='axis')|>
-            e_axis_labels(x='Years',y = 'Level of debt in Ksh.')|>
+            e_axis_labels(x='Years',y = 'Level of debt in Million Ksh.')|>
             e_title(paste('A Comparative Graph of Domestic and External Debt in Kenya'),
                     left='center',top=10)|>
             e_toolbox_feature(feature = "saveAsImage")|>
@@ -1726,7 +1726,7 @@ output$state<- renderText({
             e_line(value,symbol='none')|>
             e_animation(duration = 4000)|>
             e_tooltip(trigger='axis')|>
-            e_axis_labels(x='Years',y = 'Level of debt in Ksh.')|>
+            e_axis_labels(x='Years',y = 'Level of debt in Million Ksh.')|>
             e_title(paste('Trend in',input$indicator1,'in Kenya'),
                     left='center',top=10)|>
             e_toolbox_feature(feature = "saveAsImage")|>
