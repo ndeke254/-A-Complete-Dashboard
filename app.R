@@ -61,7 +61,7 @@ kenya_status1<- openxlsx::read.xlsx('kenya_status1.xlsx',detectDates = TRUE)
 login_details <- openxlsx::read.xlsx('login_details.xlsx',detectDates = TRUE)
   source("exports_modal_dialog.R")
 source('debt_modal_dialog.R')
-dataset<-c('Exports','Kenya Debt','Remittances')
+dataset<-c('Exports','Kenya Debt','Remittances',"Results")
 disableActionButton <- function(id,session) {
   session$sendCustomMessage(type="jsCode",
                             list(code= paste("$('#",id,"').prop('disabled',true)"
@@ -757,7 +757,10 @@ body<- dashboardBody(
                                     div(
                                       class = "text-left",
                                       div(
-                                        style = "display: inline-block;",
+                                        style = "display: inline-block;", 
+                                        selectInput(inputId='typeof',                                                      label= "Numeric Columns:", choices = c(not_sel)
+                                        ),
+                                        textOutput("typeof1"),
                                         tags$h2("Click cell to edit"),
                                         tags$h2("Left click to edit rows,columns
                                                 and download a csv file")
@@ -1031,11 +1034,9 @@ ui <-tabsetPanel(
                                  footer= div(class= 'pull-right-container',
                                           tagList(
                                             tags$li(
-                                              actionLink("reset",                                              label = "Forgot Password",                                                   icon = icon("linkedin"),                                      onclick = "modal_dialog(edit=TRUE)")),
-                                 br(),
-                                 tags$a(href='http://jeff.com/',
-                                        'New User',
-                                        style = "color:#1db3ff;")
+                                              actionLink("reset",                                              label = "Forgot Password")   ),
+                                         tags$li(
+                                           actionLink("new_user",                                              label = "New User")   )
                                  )
                                  ),
                                  width =4
@@ -1056,7 +1057,73 @@ ui <-tabsetPanel(
         )
       )
 )
-    
+register<- modalDialog(
+  fluidRow(
+    column(12,align="center",
+           tags$div(id="part1",
+           tags$a(tags$img(src='logo.png',width='10%',
+                           tags$h2("INFINICALS"))),
+           textInput("reset_name",
+                     tags$h2("Enter your username:"),
+                     placeholder="My Username"),
+           textInput("reset_email",
+                     tags$h2("Enter your email:"),
+                     placeholder="My Email"),
+           actionButton('search',"Next",icon=icon("forward"))),
+  shinyjs::hidden(tags$div(id="part2",
+           tags$a(tags$img(src='logo.png',width='10%',
+                           tags$h2("INFINICALS"))),
+           passwordInput("new_pass1",
+                     tags$h2("Enter new Password:"),
+                     placeholder="My Password"),
+           passwordInput("new_pass2",
+                     tags$h2("Repeat the Password:"),
+                     placeholder="Repeated Password"),
+           loadingButton('search2','Finish', 
+                         class   = "btn-info",
+                         loadingLabel = "Reseting..."))
+  ),textOutput('found'))),
+  title=tags$div(
+    style="margin: 0; text-align: center;",
+    tags$h3('RESET YOUR PASSWORD',
+            style="align-text: center;")),
+  footer=NULL,
+  size = 'l',
+  easyClose = TRUE
+)
+register2<- modalDialog(
+  fluidRow(
+    column(12,align="center",
+           tags$div(id="part1b",
+                    tags$a(tags$img(src='logo.png',width='10%',
+                                    tags$h2("INFINICALS"))),
+                    textInput("your_name",
+                              tags$h2("Enter your username:"),
+                              placeholder="My Username"),
+                    textInput("your_email",
+                              tags$h2("Enter your email:"),
+                              placeholder="My Email"),
+                    passwordInput("my_pass1",
+                                  tags$h2("Enter Password:"),
+                                  placeholder="My Password"),
+                    passwordInput("my_pass2",
+                                  tags$h2("Repeat Password:"),
+                                  placeholder="Repeated Password"),
+                    loadingButton('user_save','Save', 
+                                  class   = "btn-info",
+                                  loadingLabel = "Saving..."),
+                    textOutput('found1')
+                    )
+           )
+    ),
+  title=tags$div(
+    style="margin: 0; text-align: center;",
+    tags$h3('ADD NEW USER',
+            style="align-text: center;")),
+  footer=NULL,
+  size = 'l',
+  easyClose = TRUE
+)
     draw_plot<- function(upload, axis1, axis2, group){
       if(group!=not_sel){
         upload[,(group):= as.factor(upload[,get(group)])]
@@ -1207,9 +1274,15 @@ ui <-tabsetPanel(
       iv$add_rule("weight", sv_required())
       iv$add_rule("value", sv_required())
       iv$add_rule("n", sv_required())
+      iv$add_rule("your_name", sv_required())
+      iv$add_rule("your_email", sv_required())
+      iv$add_rule("my_pass1", sv_required())
+      iv$add_rule("my_pass2", sv_required())
+      iv$add_rule("new_pass1", sv_required())
+      iv$add_rule("new_pass2", sv_required())
+      iv$add_rule("reset_email", sv_required())
+      iv$add_rule("reset_name", sv_required())
       
-      iv$enable()
-    
 output$state<- renderText({
   time <- substr(Sys.time(),12,16)
   if(time >"00:01" & time < "12:00"){
@@ -1901,6 +1974,8 @@ output$state<- renderText({
         updateSelectInput(session, "axis1", choices = choices)
         updateSelectInput(session, "axis2", choices = choices)
         updateSelectInput(session, "group", choices = choices)
+        updateSelectInput(session, "typeof", choices = choices)
+        
       })
       axis1 <- eventReactive(input$run_button,input$axis1 )
       axis2 <- eventReactive(input$run_button,input$axis2 )
@@ -1978,6 +2053,7 @@ output$state<- renderText({
      
       output$interpretation <- renderUI({
         if(axis1() !=not_sel & axis2() !=not_sel){
+          if(input$axis1%in%"Not Selected" | input$axis2%in%"Not Selected"){ return( )}else {
           y<- upload()%>%select(input$axis2)%>%as_vector()
           x<- upload()%>%select(input$axis1)%>%as_vector()
           fit<- lm(y~x)  
@@ -2010,7 +2086,7 @@ output$state<- renderText({
                 paste0("(Make sure the assumptions for linear regression (independance, linearity, normality and homoscedasticity) are met before interpreting the coefficients.)"),
                 br(),
                 paste0("\\( \\beta_0 \\)", " and ", "\\( \\beta_1 \\)", " are not significantly different from 0 (p-values = ", round(summary(fit)$coefficients[1, 4], 3), " and ", round(summary(fit)$coefficients[2, 4], 3), ", respectively) so the mean of ", input$axis2, " is not significantly different from 0.")
-              )
+              )}
             }
           }else{
             return()
@@ -2018,16 +2094,26 @@ output$state<- renderText({
       })
       output$value1  <- renderText({
         if(axis1() !=not_sel & axis2() !=not_sel){
+          if(input$axis1%in%"Not Selected" | input$axis2%in%"Not Selected"){ return( )}else {
           y<- upload()%>%select(input$axis2)%>%as_vector()
           x<- upload()%>%select(input$axis1)%>%as_vector()
           fit<- lm(y~x)  
           value <- round(fit$coef[[1]], 3)+ 
             round(fit$coef[[2]], 3)*input$predict
           text<- paste('The predicted(approximated)', axis2() , 'at value', input$predict, 'of',axis1(), 'is', value )
+          }
         }else {
           return()
         }
         })
+  
+    output$typeof1 <- renderText({
+      upload1<- eventReactive(input$preview,upload())
+      if(input$typeof%in%"Not Selected"){return()} else {
+        cols <- eventReactive(input$preview, input$typeof)
+   all(sapply(upload1()[,c(cols())],is.numeric))
+      }
+     })
 
 
       observeEvent(input$dataset,{
@@ -2323,7 +2409,9 @@ output$state<- renderText({
                                ))
       })
       observeEvent(input$ok,{
-        if(input$passcode==2140){
+        admin <- details()%>%filter(user%in%"Admin")
+        pass <- admin$pswd
+        if(input$passcode%in%pass){
           shinyalert::closeAlert()
           shiny::removeModal()
           shiny::showTab('tabs',target = 'data',session=session)
@@ -2392,6 +2480,108 @@ output$state<- renderText({
             }
           })
         }
+      })
+      observeEvent(input$reset, {
+        showModal(register)
+      })
+      observeEvent(input$new_user, {
+        showModal(register2)
+      })
+      observeEvent(input$search, {
+        iv$enable()
+        name <- input$reset_name
+        email <- input$reset_email
+        if(nchar(name)==0 |nchar(email)==0 ){
+          output$found<- renderText({
+         "Provide both Username and Email!"
+               })
+        }else{
+          if(any(details()$user%in%name)) {
+            user1<- details()%>%filter(user%in%name)
+            if(user1$email%in%email){
+              shinyjqui::jqui_hide("#part1","fade")
+              shinyjs::show('part2')
+              output$found<- renderText({
+                return()
+              })
+            }else{
+              output$found<- renderText({
+                paste("The email did not match the user!")
+              })
+            }
+        }else{
+        output$found <- renderText({
+          paste("Username not found!")
+          })
+        }
+        }
+      })
+      observeEvent(input$search2, {
+        pass1<- input$new_pass1
+        pass2<-input$new_pass2
+        if(nchar(pass1)==0 |nchar(pass2)==0 ){
+          output$found <- renderText({
+            paste("Fill both inputs!")
+          })
+          resetLoadingButton("search2")
+        } else {
+          if (pass1%in%pass2){
+          name <-input$reset_name
+          login_details <- details()%>%
+            mutate_at("pswd", ~replace(.,user ==name,pass1))
+          openxlsx::write.xlsx(login_details,
+                               file ='login_details.xlsx',
+                               colNames = TRUE, borders = "columns")
+          resetLoadingButton("search2")
+          removeModal()
+          showToast(
+            "success", 
+            "Password changed successfully!", 
+            .options = myToastOptions
+          )
+          }else {
+            output$found <- renderText({
+              paste("The Passwords did not match!")
+            })
+            resetLoadingButton("search2")
+        }
+      }
+        })
+      observeEvent(input$user_save, {
+        iv$enable()
+        
+        email1 <- input$your_email
+        name1  <- input$your_name
+        pass3 <- input$my_pass1
+        pass4 <- input$my_pass2
+        if(nchar(pass3)==0 |nchar(pass4)==0 |nchar(email1)==0| 
+           nchar(name1)==0  ){
+          output$found1<- renderText({
+            paste("Fill all the inputs!")
+          })
+          resetLoadingButton("user_save")
+                  }else {
+          if(pass3%in%pass4){
+            new_row <- c(name1,pass3,email1)
+            login_details_1<- rbind(login_details,new_row)
+            openxlsx::write.xlsx(login_details_1,
+                                file ='login_details.xlsx',
+                                colNames = TRUE, borders = "columns")
+            resetLoadingButton("user_save")
+            removeModal()
+            showToast(
+              "success", 
+              "User added successfully!", 
+              .options = myToastOptions
+            )
+          }else {
+            output$found1<- renderText({
+              paste("Passwords did not match!")
+            })
+            resetLoadingButton("user_save")
+          }
+        }
+          
       })
       
     }
