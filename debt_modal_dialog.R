@@ -1,5 +1,5 @@
 modal_dialog1 <- function(datex,indicators,value,edit) {
-  kenya_status1<- openxlsx::read.xlsx('~/Programming/R/DATA/kenya_status1.xlsx',detectDates = TRUE)
+  kenya_status1<- openxlsx::read.xlsx('kenya_status1.xlsx',detectDates = TRUE)
   if(edit) {
     x <- "Submit Debt Edits"
   } else {

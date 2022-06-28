@@ -55,10 +55,10 @@ myToastOptions <- list(
   hideMethod = "fadeOut"
 )
 
-exports<- openxlsx::read.xlsx('~/Programming/R/DATA/exports.xlsx',detectDates = TRUE)
-exports1<- openxlsx::read.xlsx('~/Programming/R/DATA/exports1.xlsx',detectDates = TRUE)
-kenya_status1<- openxlsx::read.xlsx('~/Programming/R/DATA/kenya_status1.xlsx',detectDates = TRUE)
-
+exports<- openxlsx::read.xlsx('exports.xlsx',detectDates = TRUE)
+exports1<- openxlsx::read.xlsx('exports1.xlsx',detectDates = TRUE)
+kenya_status1<- openxlsx::read.xlsx('kenya_status1.xlsx',detectDates = TRUE)
+login_details <- openxlsx::read.xlsx('login_details.xlsx',detectDates = TRUE)
   source("exports_modal_dialog.R")
 source('debt_modal_dialog.R')
 dataset<-c('Exports','Kenya Debt','Remittances')
@@ -627,7 +627,7 @@ body<- dashboardBody(
                                  br(),br(),
                                  textOutput("base")
                         ),
-                        tabPanel(title ='Data',icon=icon('table'),                                        
+                        tabPanel(title ='data',icon=icon('table'),                                        
                                  titlePanel('Add/Edit the records'),                             
                                  selectInput(inputId='dataset',
                                              label= "Select the Dataset to Update",
@@ -737,7 +737,7 @@ body<- dashboardBody(
                                 titlePanel('Upload'),
                                 sidebarLayout(
                                   sidebarPanel(
-                                    fileInput('file1','Data',buttonLabel='Upload...',accept=c('.cvs','.tsv','.xls','.xlsx')
+                                    fileInput('file1','data',buttonLabel='Upload...',accept=c('.cvs','.tsv','.xls','.xlsx')
                                     ),
                                     numericInput('n','No. of Rows to preview',value=10,min=1,max=10,step=1),
                                     radioButtons("disp", "Display",
@@ -822,7 +822,8 @@ body<- dashboardBody(
                                         withMathJax(),
                                         tags$b("Regression plot:"),
                                         uiOutput("results"),
-                                        numericInput('predict','Predict',
+                                        numericInput('predict',
+                                                     'Predict',
                                                      value=0), 
                                         verbatimTextOutput("value1"),
                                         br(),
@@ -1029,9 +1030,8 @@ ui <-tabsetPanel(
                                  actionButton("Login", "Log in"),
                                  footer= div(class= 'pull-right-container',
                                           tagList(
-                                 tags$a(href='http://company.fr/',
-                                        'Forgotten Password',
-                                        style = "color:#1db3ff;"),
+                                            tags$li(
+                                              actionLink("reset",                                              label = "Forgot Password",                                                   icon = icon("linkedin"),                                      onclick = "modal_dialog(edit=TRUE)")),
                                  br(),
                                  tags$a(href='http://jeff.com/',
                                         'New User',
@@ -1055,11 +1055,7 @@ ui <-tabsetPanel(
                  )
         )
       )
-    )
-    
-    login_details <- data.frame(user = c("JEFFERSON","SAM", "PAM", "RON"),
-                                pswd = c("123A","123B","123C","123D")
-    )
+)
     
     draw_plot<- function(upload, axis1, axis2, group){
       if(group!=not_sel){
@@ -1172,6 +1168,20 @@ ui <-tabsetPanel(
         return()
       }
     }
+    regression_statement <- function(upload, axis1 ,axis2){
+      if(axis1 !=not_sel & axis2 !=not_sel){
+        x <- upload [,get(axis1)]
+        y <- upload [,get(axis2)]
+        fit<- lm(y ~ x) 
+        withMathJax(
+          br(),
+          paste0("\\( \\Rightarrow y = \\hat{\\beta}_0 + \\hat{\\beta}_1 x = \\) ", round(fit$coef[[1]], 3), " + ", round(fit$coef[[2]], 3), "\\( x \\)")
+        )
+      } else {
+        return()
+      }
+    }
+    
     create_btns <- function(x) {
       x %>%
         purrr::map_chr(~
@@ -1222,13 +1232,16 @@ output$state<- renderText({
    quote
    
       })
-      debt <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/kenya_status1.xlsx',readFunc = function(filePath){ 
+      details <- shiny::reactiveFileReader(1000,session,'login_details.xlsx',readFunc = function(filePath){ 
         openxlsx::read.xlsx(filePath,detectDates = TRUE)
       })
-      expos <- shiny::reactiveFileReader(1000,session, filePath = '~/Programming/R/DATA/exports1.xlsx',readFunc = function(filePath){ 
+      debt <- shiny::reactiveFileReader(1000,session,'kenya_status1.xlsx',readFunc = function(filePath){ 
+        openxlsx::read.xlsx(filePath,detectDates = TRUE)
+      })
+      expos <- shiny::reactiveFileReader(1000,session, filePath = 'exports1.xlsx',readFunc = function(filePath){ 
         openxlsx::read.xlsx(filePath,detectDates = TRUE)
         })
-      expot <- shiny::reactiveFileReader(1000,session,'~/Programming/R/DATA/exports.xlsx',readFunc = function(filePath){ 
+      expot <- shiny::reactiveFileReader(1000,session,'exports.xlsx',readFunc = function(filePath){ 
         openxlsx::read.xlsx(filePath,detectDates = TRUE)
       })
                                          
@@ -1289,8 +1302,8 @@ output$state<- renderText({
             if (input$Login > 0) {
               Username <- isolate(input$userName)
               Password <- isolate(input$passwd)
-              if (nrow(login_details[login_details$user == Username & 
-                                     login_details$pswd == Password,]) >= 1)                        {
+              if (nrow(details()[details()$user == Username & 
+                                     details()$pswd == Password,]) >= 1)                        {
                 USER$Logged <- TRUE
               }
             }
@@ -1828,7 +1841,10 @@ output$state<- renderText({
                        xlsx = readxl::read_xlsx(path=myfile$datapath),
                        validate("Invalid file: Please upload a .csv , .tsv , .xls or .xlsx file!")
         )
-        data.table::as.data.table(datas)
+    write.csv(datas,"logs.csv")
+    final_file <- read.csv("logs.csv")
+    unlink("logs.csv")
+    data.table::as.data.table(final_file)
       })
       
       df1 <- eventReactive(input$preview,{
@@ -1886,9 +1902,9 @@ output$state<- renderText({
         updateSelectInput(session, "axis2", choices = choices)
         updateSelectInput(session, "group", choices = choices)
       })
-      axis1 <- eventReactive(input$run_button,input$axis1)
-      axis2 <- eventReactive(input$run_button,input$axis2)
-      group <- eventReactive(input$run_button,input$group)
+      axis1 <- eventReactive(input$run_button,input$axis1 )
+      axis2 <- eventReactive(input$run_button,input$axis2 )
+      group <- eventReactive(input$run_button, input$group )
       graphty<- eventReactive(input$run_button,{
         validate(need(!is.na(input$file1), "Error: You have not uploaded any file!"))
         draw_plot(upload(), axis1(),axis2(), group())
@@ -1916,16 +1932,11 @@ output$state<- renderText({
         }
       })
       output$graph4 <- renderPlotly(graphty())
-      output$results <- renderUI({
-        if(axis1() !=not_sel & axis2() !=not_sel){
-          x <- upload()[,get(axis1())]
-          y <- upload()[,get(axis2())]
-          fit<- lm(y ~ x) 
-          withMathJax(
-            br(),
-            paste0("\\( \\Rightarrow y = \\hat{\\beta}_0 + \\hat{\\beta}_1 x = \\) ", round(fit$coef[[1]], 3), " + ", round(fit$coef[[2]], 3), "\\( x \\)")
-          )} else { return()}
+       statement_results <- eventReactive(input$run_button, {
+        regression_statement(upload(), axis1(), axis2())
       })
+       output$results<- renderUI (statement_results())
+       
       output$graph5 <- renderPlotly(graphty2())
       output$num_var_1_title <- renderText(paste("X Variable:",axis1()))
       num_var_1_summary_table <- eventReactive(input$run_button,{
@@ -1964,58 +1975,61 @@ output$state<- renderText({
       output$regression_summary_table <- renderTable({
         regression_table()
         })
+     
       output$interpretation <- renderUI({
         if(axis1() !=not_sel & axis2() !=not_sel){
-          x <- upload()[,get(axis1())]
-          y <- upload()[,get(axis2())]
-          fit<- lm(y ~ x) 
-          if (summary(fit)$coefficients[1, 4] < 0.05 & summary(fit)$coefficients[2, 4] < 0.05) {
-            withMathJax(
-              paste0("(Make sure the assumptions for linear regression (independance, linearity, normality and homoscedasticity) are met before interpreting the coefficients.)"),
-              br(),
-              paste0("For a (hypothetical) value of ", input$axis1, " = 0, the mean of ", input$axis2, " = ", round(fit$coef[[1]], 3), "."),
-              br(),
-              paste0("For an increase of one unit of ", input$axis1, ", ", input$axis2, ifelse(round(fit$coef[[2]], 3) >= 0, " increases (on average) by ", " decreases (on average) by "), abs(round(fit$coef[[2]], 3)), ifelse(abs(round(fit$coef[[2]], 3)) >= 2, " units", " unit"), ".")
-            )
-          } else if (summary(fit)$coefficients[1, 4] < 0.05 & summary(fit)$coefficients[2, 4] >= 0.05) {
-            withMathJax(
-              paste0("(Make sure the assumptions for linear regression (independance, linearity, normality and homoscedasticity) are met before interpreting the coefficients.)"),
-              br(),
-              paste0("For a (hypothetical) value of ", input$axis1, " = 0, the mean of ", input$axis2, " = ", round(fit$coef[[1]], 3), "."),
-              br(),
-              paste0("\\( \\beta_1 \\)", " is not significantly different from 0 (p-value = ", round(summary(fit)$coefficients[2, 4], 3), ") so there is no significant relationship between ", input$axis1, " and ", input$axis2, ".")
-            )
-          } else if (summary(fit)$coefficients[1, 4] >= 0.05 & summary(fit)$coefficients[2, 4] < 0.05) {
-            withMathJax(
-              paste0("(Make sure the assumptions for linear regression (independance, linearity, normality and homoscedasticity) are met before interpreting the coefficients.)"),
-              br(),
-              paste0("\\( \\beta_0 \\)", " is not significantly different from 0 (p-value = ", round(summary(fit)$coefficients[1, 4], 3), ") so when ", input$axis1, " = 0, the mean of ", input$axis2, " is not significantly different from 0."),
-              br(),
-              paste0("For an increase of one unit of ", input$axis1, ", ", input$axis2, ifelse(round(fit$coef[[2]], 3) >= 0, " increases (on average) by ", " decreases (on average) by "), abs(round(fit$coef[[2]], 3)), ifelse(abs(round(fit$coef[[2]], 3)) >= 2, " units", " unit"), ".")
-            )
-          } else {
-            withMathJax(
-              paste0("(Make sure the assumptions for linear regression (independance, linearity, normality and homoscedasticity) are met before interpreting the coefficients.)"),
-              br(),
-              paste0("\\( \\beta_0 \\)", " and ", "\\( \\beta_1 \\)", " are not significantly different from 0 (p-values = ", round(summary(fit)$coefficients[1, 4], 3), " and ", round(summary(fit)$coefficients[2, 4], 3), ", respectively) so the mean of ", input$axis2, " is not significantly different from 0.")
-            )
+          y<- upload()%>%select(input$axis2)%>%as_vector()
+          x<- upload()%>%select(input$axis1)%>%as_vector()
+          fit<- lm(y~x)  
+            if (summary(fit)$coefficients[1, 4] < 0.05 & summary(fit)$coefficients[2, 4] < 0.05) {
+              withMathJax(
+                paste0("(Make sure the assumptions for linear regression (independance, linearity, normality and homoscedasticity) are met before interpreting the coefficients.)"),
+                br(),
+                paste0("For a (hypothetical) value of ", input$axis1, " = 0, the mean of ", input$axis2, " = ", round(fit$coef[[1]], 3), "."),
+                br(),
+                paste0("For an increase of one unit of ", input$axis1, ", ", input$axis2, ifelse(round(fit$coef[[2]], 3) >= 0, " increases (on average) by ", " decreases (on average) by "), abs(round(fit$coef[[2]], 3)), ifelse(abs(round(fit$coef[[2]], 3)) >= 2, " units", " unit"), ".")
+              )
+            } else if (summary(fit)$coefficients[1, 4] < 0.05 & summary(fit)$coefficients[2, 4] >= 0.05) {
+              withMathJax(
+                paste0("(Make sure the assumptions for linear regression (independance, linearity, normality and homoscedasticity) are met before interpreting the coefficients.)"),
+                br(),
+                paste0("For a (hypothetical) value of ", input$axis1, " = 0, the mean of ", input$axis2, " = ", round(fit$coef[[1]], 3), "."),
+                br(),
+                paste0("\\( \\beta_1 \\)", " is not significantly different from 0 (p-value = ", round(summary(fit)$coefficients[2, 4], 3), ") so there is no significant relationship between ", input$axis1, " and ", input$axis2, ".")
+              )
+            } else if (summary(fit)$coefficients[1, 4] >= 0.05 & summary(fit)$coefficients[2, 4] < 0.05) {
+              withMathJax(
+                paste0("(Make sure the assumptions for linear regression (independance, linearity, normality and homoscedasticity) are met before interpreting the coefficients.)"),
+                br(),
+                paste0("\\( \\beta_0 \\)", " is not significantly different from 0 (p-value = ", round(summary(fit)$coefficients[1, 4], 3), ") so when ", input$axis1, " = 0, the mean of ", input$axis2, " is not significantly different from 0."),
+                br(),
+                paste0("For an increase of one unit of ", input$axis1, ", ", input$axis2, ifelse(round(fit$coef[[2]], 3) >= 0, " increases (on average) by ", " decreases (on average) by "), abs(round(fit$coef[[2]], 3)), ifelse(abs(round(fit$coef[[2]], 3)) >= 2, " units", " unit"), ".")
+              )
+            } else {
+              withMathJax(
+                paste0("(Make sure the assumptions for linear regression (independance, linearity, normality and homoscedasticity) are met before interpreting the coefficients.)"),
+                br(),
+                paste0("\\( \\beta_0 \\)", " and ", "\\( \\beta_1 \\)", " are not significantly different from 0 (p-values = ", round(summary(fit)$coefficients[1, 4], 3), " and ", round(summary(fit)$coefficients[2, 4], 3), ", respectively) so the mean of ", input$axis2, " is not significantly different from 0.")
+              )
+            }
+          }else{
+            return()
           }
-        }else{
-          return()
-        }
       })
-      output$value1 <- renderText({
+      output$value1  <- renderText({
         if(axis1() !=not_sel & axis2() !=not_sel){
-          x <- upload()[,get(axis1())]
-          y <- upload()[,get(axis2())]
-          fit<- lm(y ~ x) 
-          value <- round(fit$coef[[1]], 3)+ round(fit$coef[[2]], 3)*input$predict
+          y<- upload()%>%select(input$axis2)%>%as_vector()
+          x<- upload()%>%select(input$axis1)%>%as_vector()
+          fit<- lm(y~x)  
+          value <- round(fit$coef[[1]], 3)+ 
+            round(fit$coef[[2]], 3)*input$predict
           text<- paste('The predicted(approximated)', axis2() , 'at value', input$predict, 'of',axis1(), 'is', value )
-          return(text)
-        } else { 
+        }else {
           return()
         }
-      })
+        })
+
+
       observeEvent(input$dataset,{
         if(input$dataset%in%'Exports'){
           updateActionButton(session, 'add_export',label='Add Export')
@@ -2249,7 +2263,7 @@ output$state<- renderText({
       observeEvent(input$confirm,{
         final<-subset(rv$df, select = -c(Buttons))
         openxlsx::write.xlsx(final,
-                             file ='~/Programming/R/DATA/exports1.xlsx',
+                             file ='exports1.xlsx',
                              colNames = TRUE, borders = "columns")
         resetLoadingButton("confirm")
         removeModal()
@@ -2262,7 +2276,7 @@ output$state<- renderText({
       observeEvent(input$confirm1,{
         final1<-subset(rv1$df, select = -c(Buttons))
         openxlsx::write.xlsx(final1,
-                             file = '~/Programming/R/DATA/kenya_status1.xlsx',
+                             file = 'kenya_status1.xlsx',
                              colNames = TRUE, borders = "columns")
         resetLoadingButton("confirm1")
         removeModal()
@@ -2290,7 +2304,7 @@ output$state<- renderText({
       shiny::hideTab('tabs',target = 'Authenticate',session=session)
       
       observeEvent(input$decline,{
-        shiny::hideTab('tabs',target = 'Data',session=session)
+        shiny::hideTab('tabs',target = 'data',session=session)
         shiny::hideTab('tabs',target = 'View Available Data',session=session)
         shiny::showTab('tabs',target = 'Authenticate',session=session)
         shiny::removeModal()
@@ -2312,13 +2326,13 @@ output$state<- renderText({
         if(input$passcode==2140){
           shinyalert::closeAlert()
           shiny::removeModal()
-          shiny::showTab('tabs',target = 'Data',session=session)
+          shiny::showTab('tabs',target = 'data',session=session)
           shiny::hideTab('tabs',target = 'View Available Data',session=session)
           shiny::hideTab('tabs',target = 'Authenticate',session=session)
         } else{
           shinyalert::closeAlert()
           shiny::removeModal()
-          shiny::hideTab('tabs',target = 'Data',session=session)
+          shiny::hideTab('tabs',target = 'data',session=session)
           shiny::hideTab('tabs',target = 'View Available Data',session=session)
           shiny::showTab('tabs',target = 'Authenticate',session=session)
           output$base<- renderText({

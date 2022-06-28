@@ -1,5 +1,5 @@
 modal_dialog <- function(dates,type,crop, weight,edit) {
-  exports1<- openxlsx::read.xlsx('~/Programming/R/DATA/exports1.xlsx',detectDates = TRUE)
+  exports1<- openxlsx::read.xlsx('exports1.xlsx',detectDates = TRUE)
   not_sel <- "Not Selected"
   if(edit) {
     x <- "Submit Edits"
