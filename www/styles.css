@@ -95,13 +95,27 @@ body {
 
 .login {
     background-image: url(bg1.jpg);
-    background-size: cover;
+     background-size: cover;
     height: 100vh;
+    text-align: center;
+    display: grid; 
+    margin: auto;
     align-items: center;
-    display: grid;
-
-}
+    padding-left: 420px;
+   }
 .page_1 {
       background-color: black;
 
+}
+.p7 {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  border-bottom: ridge 2px;
+}
+.p8 {
+  padding-right: 10px;
+}
+b {
+  display: inline;
 }
