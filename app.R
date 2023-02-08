@@ -28,7 +28,7 @@ library(DT)
 library(rhandsontable)
 not_sel <- "Not Selected"
 theme1 <- theme(
-  axis.line = element_line(colour = 'grey50', size = .75),
+  axis.line = element_line(colour = 'grey50', linewidth = .75),
   panel.background = element_rect(fill='lightblue'),
   plot.background = element_rect(colour='darkblue'),
   panel.grid.major.y = element_line(colour = "grey50"),
@@ -1414,15 +1414,7 @@ server <- function(input, output, session) {
     )
   })
   
-  login.page = 
-    paste(
-      isolate(session$clientData$url_protocol),
-      "//",
-      isolate(session$clientData$url_hostname),
-      ":",
-      isolate(session$clientData$url_port),
-      sep = ""
-    )
+
   USER <- reactiveValues(Logged = F)
   observe({
     if (USER$Logged == FALSE) {
@@ -1463,7 +1455,6 @@ server <- function(input, output, session) {
       duration = 500
     )
   })
-  
   observeEvent(input$Login, { 
     if(USER$Logged!=TRUE){
       shinyFeedback::showFeedbackDanger(inputId = 'passwd',
@@ -1544,7 +1535,7 @@ server <- function(input, output, session) {
       name=input$userName,
       image='user_image.png',
       footer=p('Beyond Infinity'),
-      subtitle = a(icon("user"),"LOG OUT", href = login.page)
+      subtitle = a(icon("user"),"LOG OUT", href='#panels')
     )
   })
   output$text1<-renderText({
